@@ -16,7 +16,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.tracecompass.segmentstore.core,
  org.eclipse.tracecompass.tmf.core,
  org.eclipse.tracecompass.tmf.ui,
- org.swtchart
+ org.swtchart,
+ org.eclipse.tracecompass.analysis.lami.core,
+ org.json
 Export-Package: org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore,
  org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.density,
  org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.scatter,
@@ -27,3 +29,6 @@ Export-Package: org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore,
  org.eclipse.tracecompass.internal.analysis.timing.ui.views.segmentstore.scatter,
  org.eclipse.tracecompass.internal.analysis.timing.ui.views.segmentstore.statistics,
  org.eclipse.tracecompass.internal.analysis.timing.ui.views.segmentstore.table
+Import-Package: org.eclipse.tracecompass.internal.analysis.os.linux.core.latency,
+ org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers,
+ org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.views
