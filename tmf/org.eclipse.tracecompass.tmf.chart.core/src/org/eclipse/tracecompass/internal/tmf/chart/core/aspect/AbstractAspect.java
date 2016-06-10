@@ -26,6 +26,7 @@ public abstract class AbstractAspect {
 
     private final String fName;
     private final @Nullable String fUnits;
+    private final int fColIndex;
 
     /**
      * Constructor
@@ -34,10 +35,13 @@ public abstract class AbstractAspect {
      *            Aspect name, will be used as column name in the UI
      * @param units
      *            The units of the value in this column
+     * @param colIndex
+     *            The column index
      */
-    protected AbstractAspect(String name, @Nullable String units) {
+    protected AbstractAspect(String name, @Nullable String units, int colIndex) {
         fUnits = units;
         fName = name;
+        fColIndex = colIndex;
     }
 
     /**
@@ -70,6 +74,15 @@ public abstract class AbstractAspect {
      */
     public @Nullable String getUnits() {
         return fUnits;
+    }
+
+    /**
+     * Get the column index of this aspect.
+     *
+     * @return The column index
+     */
+    public int getColumnIndex() {
+        return fColIndex;
     }
 
     /**

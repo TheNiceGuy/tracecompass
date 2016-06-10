@@ -21,8 +21,6 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.type.DataDuration;
  */
 public class DurationAspect extends AbstractAspect {
 
-    private final int fColIndex;
-
     /**
      * Constructor
      *
@@ -32,8 +30,7 @@ public class DurationAspect extends AbstractAspect {
      *            Column index
      */
     public DurationAspect(String colName, int colIndex) {
-        super(colName, "ns"); //$NON-NLS-1$
-        fColIndex = colIndex;
+        super(colName, "ns", colIndex); //$NON-NLS-1$
     }
 
     @Override
@@ -53,7 +50,7 @@ public class DurationAspect extends AbstractAspect {
 
     @Override
     public @Nullable String resolveString(TableEntry entry) {
-        AbstractData data = entry.getValue(fColIndex);
+        AbstractData data = entry.getValue(getColumnIndex());
         if (data instanceof DataDuration) {
             DataDuration duration = (DataDuration) data;
             return String.valueOf(duration.getValue());
@@ -63,7 +60,7 @@ public class DurationAspect extends AbstractAspect {
 
     @Override
     public @Nullable Number resolveNumber(TableEntry entry) {
-        AbstractData data = entry.getValue(fColIndex);
+        AbstractData data = entry.getValue(getColumnIndex());
         if (data instanceof DataDuration) {
             DataDuration range = (DataDuration) data;
             return range.getValue();

@@ -22,8 +22,6 @@ import org.eclipse.tracecompass.tmf.core.timestamp.TmfTimestampFormat;
  */
 public class TimestampAspect extends AbstractAspect {
 
-    private final int fColIndex;
-
     /**
      * Constructor
      *
@@ -33,8 +31,7 @@ public class TimestampAspect extends AbstractAspect {
      *            Column index
      */
     public TimestampAspect(String timestampName, int colIndex) {
-        super(timestampName, null);
-        fColIndex = colIndex;
+        super(timestampName, null, colIndex);
     }
 
     @Override
@@ -49,7 +46,7 @@ public class TimestampAspect extends AbstractAspect {
 
     @Override
     public @Nullable String resolveString(TableEntry entry) {
-        AbstractData data = entry.getValue(fColIndex);
+        AbstractData data = entry.getValue(getColumnIndex());
         if (data instanceof DataInteger) {
             DataInteger range = (DataInteger) data;
             return TmfTimestampFormat.getDefaulTimeFormat().format(range.getValue());
@@ -59,7 +56,7 @@ public class TimestampAspect extends AbstractAspect {
 
     @Override
     public @Nullable Number resolveNumber(TableEntry entry) {
-        AbstractData data = entry.getValue(fColIndex);
+        AbstractData data = entry.getValue(getColumnIndex());
         if (data instanceof DataInteger) {
             DataInteger range = (DataInteger) data;
             return Long.valueOf(range.getValue());
