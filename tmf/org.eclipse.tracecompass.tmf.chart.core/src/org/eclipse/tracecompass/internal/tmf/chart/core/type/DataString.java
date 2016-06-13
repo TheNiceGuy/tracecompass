@@ -11,7 +11,7 @@ package org.eclipse.tracecompass.internal.tmf.chart.core.type;
 
 import org.eclipse.jdt.annotation.Nullable;
 
-class DataString extends AbstractData {
+public class DataString extends AbstractData {
 
     private final String fValue;
 

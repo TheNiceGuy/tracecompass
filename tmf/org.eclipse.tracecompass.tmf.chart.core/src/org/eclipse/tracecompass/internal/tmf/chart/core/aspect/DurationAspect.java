@@ -9,6 +9,9 @@
 
 package org.eclipse.tracecompass.internal.tmf.chart.core.aspect;
 
+import java.util.Comparator;
+
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.TableEntry;
 import org.eclipse.tracecompass.internal.tmf.chart.core.type.AbstractData;
@@ -68,8 +71,8 @@ public class DurationAspect extends AbstractAspect {
         return null;
     }
 
-/*TODO    @Override
-    public @NonNull Comparator<@NonNull LamiTableEntry> getComparator() {
+    @Override
+    public @NonNull Comparator<@NonNull TableEntry> getComparator() {
         return (o1, o2) -> {
             Number d1 = resolveNumber(o1);
             Number d2 = resolveNumber(o2);
@@ -87,5 +90,5 @@ public class DurationAspect extends AbstractAspect {
 
             return Long.compare(d1.longValue(), d2.longValue());
         };
-    }*/
+    }
 }

@@ -35,6 +35,7 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.ISegmentStoreProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.core.latency.SystemCall;
+import org.eclipse.tracecompass.internal.analysis.os.linux.core.latency.SystemCallTableProvider;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiDurationAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiProcessNameAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
@@ -48,6 +49,10 @@ import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.La
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiTimestamp;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers.ILamiViewer;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.views.LamiSeriesDialog;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.ResultTable;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.TableEntry;
+import org.eclipse.tracecompass.internal.tmf.chart.core.type.DataInteger;
+import org.eclipse.tracecompass.internal.tmf.chart.core.type.DataString;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel.ChartType;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiResultTable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableClass;
@@ -117,6 +122,13 @@ public abstract class AbstractSegmentStoreTableView extends TmfView {
                 if(provider != null) {
                     ISegmentStore<ISegment> store = provider.getSegmentStore();
                     if(store != null) {
+                        SystemCallTableProvider pro = new SystemCallTableProvider(store);
+                        ResultTable rTable = pro.getResultTable();
+
+                        if(rTable != null) {
+                            rTable.getEntries().stream().map(entry -> ((DataString)entry.getValue(3))).forEach(System.out::println);
+                        }
+
                         for(ISegment seg : store) {
                             SystemCall sc = (SystemCall) seg;
 

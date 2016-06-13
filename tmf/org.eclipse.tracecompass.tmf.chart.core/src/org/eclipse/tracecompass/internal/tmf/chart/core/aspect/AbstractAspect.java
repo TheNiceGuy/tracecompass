@@ -6,22 +6,15 @@
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-
 package org.eclipse.tracecompass.internal.tmf.chart.core.aspect;
 
+import java.util.Comparator;
+
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.TableEntry;
 
-/**
- * Aspect for LAMI table entries, which normally correspond to one "row"
- * of JSON output.
- *
- * It is not the same as a "Event aspect" used for trace events, but it is
- * heavily inspired from it.
- *
- * @author Alexandre Montplaisir
- * @see org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect
- */
+
 public abstract class AbstractAspect {
 
     private final String fName;
@@ -137,7 +130,7 @@ public abstract class AbstractAspect {
      *
      * @return The entry comparator
      */
-//TODO    public abstract Comparator<LamiTableEntry> getComparator();
+    public abstract @NonNull Comparator<@NonNull TableEntry> getComparator();
 
     /**
      * Check if an aspect have the same properties.
@@ -148,9 +141,9 @@ public abstract class AbstractAspect {
      *            The aspect to compare to
      * @return If all aspect's properties are equal
      */
-/*TODO    public boolean arePropertiesEqual(LamiTableEntryAspect aspect) {
+    public boolean arePropertiesEqual(AbstractAspect aspect) {
         boolean timestamp = (this.isTimeStamp() == aspect.isTimeStamp());
         boolean numerical = (this.isContinuous() == aspect.isContinuous());
         return (timestamp && numerical);
-    }*/
+    }
 }
