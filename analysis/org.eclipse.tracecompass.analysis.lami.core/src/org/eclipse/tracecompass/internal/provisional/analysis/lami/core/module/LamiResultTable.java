@@ -42,6 +42,8 @@ public class LamiResultTable {
         fTimeRange = timeRange;
         fTableClass = tableClass;
         fEntries = ImmutableList.copyOf(entries);
+
+        new LamiResultTableDataModel(this);
     }
 
     /**

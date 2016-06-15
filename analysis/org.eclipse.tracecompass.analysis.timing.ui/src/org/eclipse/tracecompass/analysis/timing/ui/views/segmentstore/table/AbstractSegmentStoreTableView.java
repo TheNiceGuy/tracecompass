@@ -1,4 +1,5 @@
 /*******************************************************************************
+
  * Copyright (c) 2015, 2016 Ericsson
  *
  * All rights reserved. This program and the accompanying materials are
@@ -35,12 +36,15 @@ import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.ISegmentStoreProvider;
 import org.eclipse.tracecompass.internal.analysis.os.linux.core.latency.SystemCall;
-import org.eclipse.tracecompass.internal.analysis.os.linux.core.latency.SystemCallTableProvider;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiDurationAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiProcessNameAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTimestampAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel.ChartType;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiResultTable;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableClass;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiXYSeriesDescription;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiData;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiDuration;
@@ -49,14 +53,6 @@ import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.La
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiTimestamp;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.viewers.ILamiViewer;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.views.LamiSeriesDialog;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.ResultTable;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.TableEntry;
-import org.eclipse.tracecompass.internal.tmf.chart.core.type.DataInteger;
-import org.eclipse.tracecompass.internal.tmf.chart.core.type.DataString;
-import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiChartModel.ChartType;
-import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiResultTable;
-import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableClass;
-import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module.LamiTableEntry;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
@@ -122,14 +118,11 @@ public abstract class AbstractSegmentStoreTableView extends TmfView {
                 if(provider != null) {
                     ISegmentStore<ISegment> store = provider.getSegmentStore();
                     if(store != null) {
-                        SystemCallTableProvider pro = new SystemCallTableProvider(store);
-                        ResultTable rTable = pro.getResultTable();
-
-                        if(rTable != null) {
-                            rTable.getEntries().stream().map(entry -> ((DataString)entry.getValue(3))).forEach(System.out::println);
-                        }
+//                        AbstractDataModel model = new SystemCallDataModel(store);
+//                        model.getDataDescriptors().get(0).getSource().getStream().forEach(System.out::println);
 
                         for(ISegment seg : store) {
+
                             SystemCall sc = (SystemCall) seg;
 
                             if(min > sc.getStart() || min == -1) {
