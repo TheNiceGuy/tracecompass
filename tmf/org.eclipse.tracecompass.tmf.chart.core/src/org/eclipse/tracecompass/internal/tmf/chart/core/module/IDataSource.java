@@ -8,30 +8,18 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.tmf.chart.core.module;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.stream.Stream;
+
+import org.eclipse.jdt.annotation.Nullable;
 
 /**
- * This is a basic interface in order to allow data from various analyses
- * to work with the chart plugin. Each aspect correspond to a source.
+ * This interface allows the reading of specific type of data from an analysis.
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
-public abstract class AbstractDataModel {
-
-    private List<DataDescriptor> fDataDescriptors;
-
+public interface IDataSource {
     /**
-     * Default constructor
+     * @return stream of data
      */
-    public AbstractDataModel() {
-        fDataDescriptors = new ArrayList<>();
-    }
-
-    /**
-     * @return aspects list of the data model
-     */
-    public List<DataDescriptor> getDataDescriptors() {
-        return fDataDescriptors;
-    }
+    @Nullable Stream<?> getStream();
 }

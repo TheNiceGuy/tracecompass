@@ -1,29 +1,28 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 EfficiOS Inc., Alexandre Montplaisir
+ * Copyright (c) 2016 EfficiOS Inc., Michael Jeanson
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-
 package org.eclipse.tracecompass.internal.tmf.chart.core.aspect;
 
 /**
- * Aspect for timestamps
+ * Aspect for a time range duration
  *
- * @author Alexandre Montplaisir
+ * @author Michael Jeanson
  */
-public class TimestampAspect extends AbstractAspect {
+public class DurationAspect extends AbstractAspect {
 
     /**
      * Constructor
      *
-     * @param timestampName
-     *            Name of the timestamp
+     * @param colName
+     *            Column name
      */
-    public TimestampAspect(String timestampName) {
-        super(timestampName, null);
+    public DurationAspect(String colName) {
+        super(colName, "ns"); //$NON-NLS-1$
     }
 
     @Override
@@ -33,31 +32,36 @@ public class TimestampAspect extends AbstractAspect {
 
     @Override
     public boolean isTimeStamp() {
+        return false;
+    }
+
+    @Override
+    public boolean isTimeDuration() {
         return true;
     }
 
 //    @Override
-//    public @Nullable String resolveString(TableEntry entry) {
-//        AbstractData data = entry.getValue(getColumnIndex());
-//        if (data instanceof DataInteger) {
-//            DataInteger range = (DataInteger) data;
-//            return TmfTimestampFormat.getDefaulTimeFormat().format(range.getValue());
+//    public @Nullable String resolveString(LamiTableEntry entry) {
+//        LamiData data = entry.getValue(fColIndex);
+//        if (data instanceof LamiDuration) {
+//            LamiDuration duration = (LamiDuration) data;
+//            return String.valueOf(duration.getValue());
 //        }
 //        return data.toString();
 //    }
 //
 //    @Override
-//    public @Nullable Number resolveNumber(TableEntry entry) {
-//        AbstractData data = entry.getValue(getColumnIndex());
-//        if (data instanceof DataInteger) {
-//            DataInteger range = (DataInteger) data;
-//            return Long.valueOf(range.getValue());
+//    public @Nullable Number resolveNumber(@NonNull LamiTableEntry entry) {
+//        LamiData data = entry.getValue(fColIndex);
+//        if (data instanceof LamiDuration) {
+//            LamiDuration range = (LamiDuration) data;
+//            return range.getValue();
 //        }
 //        return null;
 //    }
 //
 //    @Override
-//    public @NonNull Comparator<@NonNull TableEntry> getComparator() {
+//    public @NonNull Comparator<@NonNull LamiTableEntry> getComparator() {
 //        return (o1, o2) -> {
 //            Number d1 = resolveNumber(o1);
 //            Number d2 = resolveNumber(o2);
