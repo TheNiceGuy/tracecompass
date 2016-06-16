@@ -9,6 +9,7 @@
 package org.eclipse.tracecompass.internal.tmf.chart.core.module;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -19,13 +20,33 @@ import java.util.List;
  */
 public abstract class AbstractDataModel {
 
+    private static List<AbstractDataModel> fInstances = new ArrayList<>();
+
+    private String fName;
+
     private List<DataDescriptor> fDataDescriptors;
 
     /**
-     * Default constructor
+     * TODO: destroy instances
      */
-    public AbstractDataModel() {
+
+    /**
+     * Default constructor
+     *
+     * @param name of the data model
+     */
+    public AbstractDataModel(String name) {
+        fName = name;
         fDataDescriptors = new ArrayList<>();
+
+        fInstances.add(this);
+    }
+
+    /**
+     * @return name of the data model
+     */
+    public String getName() {
+        return fName;
     }
 
     /**
@@ -33,5 +54,12 @@ public abstract class AbstractDataModel {
      */
     public List<DataDescriptor> getDataDescriptors() {
         return fDataDescriptors;
+    }
+
+    /**
+     * @return collection of instances
+     */
+    static public List<AbstractDataModel> getInstances() {
+        return Collections.unmodifiableList(fInstances);
     }
 }

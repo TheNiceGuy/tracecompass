@@ -13,13 +13,11 @@ import java.util.stream.Stream;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
-import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.TimestampAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.IDataSource;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
 import org.eclipse.tracecompass.segmentstore.core.SegmentStoreDataModel;
-import org.eclipse.tracecompass.segmentstore.core.SegmentStoreDataModel.StartSource;
 
 public class SystemCallDataModel extends SegmentStoreDataModel {
 

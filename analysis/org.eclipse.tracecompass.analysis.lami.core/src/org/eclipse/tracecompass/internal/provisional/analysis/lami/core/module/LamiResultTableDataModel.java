@@ -57,6 +57,8 @@ public class LamiResultTableDataModel extends AbstractDataModel {
     }
 
     public LamiResultTableDataModel(LamiResultTable resultTable) {
+        super("LAMI");
+
         fResultTable = resultTable;
 
         // create descriptors for timestamps
@@ -96,11 +98,11 @@ public class LamiResultTableDataModel extends AbstractDataModel {
                     getDataDescriptors().add(new DataDescriptor(newAspect, newSource));
                 });
 
-        getDataDescriptors().stream().forEach(descriptor -> {
-            System.out.println(descriptor.getAspect().getLabel());
-            descriptor.getSource().getStream().forEach(System.out::println);
-            System.out.println("");
-        });
+//        getDataDescriptors().stream().forEach(descriptor -> {
+//            System.out.println(descriptor.getAspect().getLabel());
+//            descriptor.getSource().getStream().forEach(System.out::println);
+//            System.out.println("");
+//        });
     }
 
 }

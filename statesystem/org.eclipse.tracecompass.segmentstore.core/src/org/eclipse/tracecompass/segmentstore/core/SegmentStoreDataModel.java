@@ -47,6 +47,8 @@ public class SegmentStoreDataModel extends AbstractDataModel {
     }
 
     public SegmentStoreDataModel(@NonNull ISegmentStore<ISegment> segmentStore) {
+        super("SegmentStore");
+
         fSegmentStore = segmentStore;
 
         getDataDescriptors().add(new DataDescriptor(new TimestampAspect("Start"), new StartSource()));
