@@ -46,8 +46,8 @@ public class SegmentStoreDataModel extends AbstractDataModel {
         }
     }
 
-    public SegmentStoreDataModel(@NonNull ISegmentStore<ISegment> segmentStore) {
-        super("SegmentStore");
+    public SegmentStoreDataModel(String name, @NonNull ISegmentStore<ISegment> segmentStore) {
+        super(name);
 
         fSegmentStore = segmentStore;
 

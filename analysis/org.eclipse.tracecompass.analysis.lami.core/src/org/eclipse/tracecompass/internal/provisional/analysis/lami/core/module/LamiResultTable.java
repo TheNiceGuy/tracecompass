@@ -43,7 +43,7 @@ public class LamiResultTable {
         fTableClass = tableClass;
         fEntries = ImmutableList.copyOf(entries);
 
-        new LamiResultTableDataModel(this);
+        new LamiResultTableDataModel(fTableClass.getTableTitle(), this);
     }
 
     /**

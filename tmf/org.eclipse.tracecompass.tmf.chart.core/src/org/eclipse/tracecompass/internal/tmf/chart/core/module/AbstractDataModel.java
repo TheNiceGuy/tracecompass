@@ -38,7 +38,6 @@ public abstract class AbstractDataModel {
     public AbstractDataModel(String name) {
         fName = name;
         fDataDescriptors = new ArrayList<>();
-
         fInstances.add(this);
     }
 

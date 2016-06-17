@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.statistics.SegmentStoreStatistics;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.DurationAspect;
+import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.IntAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
@@ -66,8 +67,8 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
         }
     }
 
-    public SystemCallLatencyDataModel(@Nullable Map<String, SegmentStoreStatistics> segmentStats) {
-        super("SystemCallLatency");
+    public SystemCallLatencyDataModel(String name, @Nullable Map<String, SegmentStoreStatistics> segmentStats) {
+        super(name);
 
         if(segmentStats == null) {
             fSegmentStats = new HashMap<>();
@@ -81,11 +82,6 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
         getDataDescriptors().add(new DataDescriptor(new DurationAspect("Maximum"), new MaximumSource()));
         getDataDescriptors().add(new DataDescriptor(new DurationAspect("Average"), new AverageSource()));
         getDataDescriptors().add(new DataDescriptor(new DurationAspect("Standard Deviation"), new StandardDeviationSource()));
-        getDataDescriptors().add(new DataDescriptor(new DurationAspect("Count"), new CountSource()));
-
-//        for(DataDescriptor desc : getDataDescriptors()) {
-//            System.out.println(desc.getAspect().getLabel());
-//            desc.getSource().getStream().forEach(System.out::println);
-//        }
+        getDataDescriptors().add(new DataDescriptor(new IntAspect("Count"), new CountSource()));
     }
 }

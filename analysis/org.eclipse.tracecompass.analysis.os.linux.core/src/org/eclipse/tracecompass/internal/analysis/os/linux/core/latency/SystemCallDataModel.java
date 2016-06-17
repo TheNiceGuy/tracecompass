@@ -31,8 +31,8 @@ public class SystemCallDataModel extends SegmentStoreDataModel {
         }
     }
 
-    public SystemCallDataModel(@NonNull ISegmentStore<ISegment> segmentStore) {
-        super(segmentStore);
+    public SystemCallDataModel(String name, @NonNull ISegmentStore<ISegment> segmentStore) {
+        super(name, segmentStore);
 
         fSegmentStore = segmentStore;
 

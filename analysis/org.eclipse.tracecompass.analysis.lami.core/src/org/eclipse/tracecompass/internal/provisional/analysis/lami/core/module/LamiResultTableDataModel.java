@@ -56,8 +56,8 @@ public class LamiResultTableDataModel extends AbstractDataModel {
         }
     }
 
-    public LamiResultTableDataModel(LamiResultTable resultTable) {
-        super("LAMI");
+    public LamiResultTableDataModel(String name, LamiResultTable resultTable) {
+        super(name);
 
         fResultTable = resultTable;
 
@@ -65,7 +65,7 @@ public class LamiResultTableDataModel extends AbstractDataModel {
         fResultTable.getTableClass().getAspects().stream()
                 .filter(aspect -> aspect.isTimeStamp())
                 .forEach(aspect -> {
-                    AbstractAspect newAspect = new TimestampAspect(aspect.getLabel());
+                    AbstractAspect newAspect = new TimestampAspect(aspect.getName());
                     IDataSource newSource = new LamiDataNumberSource(aspect);
                     getDataDescriptors().add(new DataDescriptor(newAspect, newSource));
                 });
@@ -74,7 +74,7 @@ public class LamiResultTableDataModel extends AbstractDataModel {
         fResultTable.getTableClass().getAspects().stream()
                 .filter(aspect -> aspect.isTimeDuration())
                 .forEach(aspect -> {
-                    AbstractAspect newAspect = new DurationAspect(aspect.getLabel());
+                    AbstractAspect newAspect = new DurationAspect(aspect.getName());
                     IDataSource newSource = new LamiDataNumberSource(aspect);
                     getDataDescriptors().add(new DataDescriptor(newAspect, newSource));
                 });
@@ -97,12 +97,5 @@ public class LamiResultTableDataModel extends AbstractDataModel {
                     IDataSource newSource = new LamiDataStringSource(aspect);
                     getDataDescriptors().add(new DataDescriptor(newAspect, newSource));
                 });
-
-//        getDataDescriptors().stream().forEach(descriptor -> {
-//            System.out.println(descriptor.getAspect().getLabel());
-//            descriptor.getSource().getStream().forEach(System.out::println);
-//            System.out.println("");
-//        });
     }
-
 }
