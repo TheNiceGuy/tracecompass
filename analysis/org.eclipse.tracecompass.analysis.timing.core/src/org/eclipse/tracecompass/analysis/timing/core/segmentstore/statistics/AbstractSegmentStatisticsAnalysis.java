@@ -112,6 +112,7 @@ public abstract class AbstractSegmentStatisticsAnalysis extends TmfAbstractAnaly
                 perSegmentTypeStats.put(segmentType, values);
             }
         }
+        new SystemCallLatencyDataModel("System Call Latency Statistics", perSegmentTypeStats);
         fPerSegmentTypeStats = perSegmentTypeStats;
         return true;
     }
