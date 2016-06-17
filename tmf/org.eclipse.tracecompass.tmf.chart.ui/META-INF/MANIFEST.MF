@@ -10,6 +10,7 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.tracecompass.tmf.ui,
  org.eclipse.tracecompass.tmf.core,
  org.eclipse.tracecompass.tmf.chart.core,
- org.eclipse.swt
+ org.eclipse.swt,
+ org.eclipse.jface
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy

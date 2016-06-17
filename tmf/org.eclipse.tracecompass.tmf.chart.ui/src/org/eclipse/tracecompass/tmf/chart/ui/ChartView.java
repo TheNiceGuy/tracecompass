@@ -15,6 +15,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 
 public class ChartView extends TmfView {
@@ -36,13 +37,16 @@ public class ChartView extends TmfView {
 
             @Override
             public void widgetSelected(SelectionEvent e) {
-//                for(AbstractDataModel model : AbstractDataModel.getInstances()) {
-//                    for(DataDescriptor descriptor : model.getDataDescriptors()) {
-//                        System.out.println(descriptor.getAspect().getLabel());
-//                    }
-//                }
                 ChartMakerDialog maker = new ChartMakerDialog(parent.getShell());
+
                 maker.open();
+                DataSeries series = maker.getDataSeries();
+                if(series == null) {
+                    return;
+                }
+
+                System.out.println(series.getXData().getAspect().getLabel());
+                series.getYData().stream().map(a -> a.getAspect().getLabel()).forEach(System.out::println);
             }
 
             @Override

@@ -8,15 +8,21 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.tmf.chart.ui;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.eclipse.jface.dialogs.Dialog;
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.viewers.ArrayContentProvider;
+import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
+import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
@@ -30,28 +36,76 @@ import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
+import org.eclipse.ui.dialogs.SelectionDialog;
 
-public class ChartMakerDialog extends Dialog {
+public class ChartMakerDialog extends SelectionDialog {
 
     private Composite fComposite;
     private Combo fComboDataModel;
     private List fSelectionX;
     private CheckboxTableViewer fSelectionY;
 
-    private class DataModelSelected extends SelectionAdapter {
+    private Class<?> fAspectFilter;
+
+    private int fDataModelIndex;
+    private @Nullable DataSeries fDataSeries;
+
+    private class DataModelSelectedEvent extends SelectionAdapter {
         @Override
         public void widgetSelected(SelectionEvent event) {
-            int index = fComboDataModel.getSelectionIndex();
+            fDataModelIndex = fComboDataModel.getSelectionIndex();
+            fAspectFilter = null;
 
-            fSelectionX.removeAll();
-            AbstractDataModel.getInstances().get(index).getDataDescriptors().stream()
-                    .map(descriptor -> descriptor.getAspect().getLabel())
-                    .forEach(fSelectionX::add);
+            populateX();
+            populateY();
 
-            java.util.List<String> input = AbstractDataModel.getInstances().get(index).getDataDescriptors().stream()
-                    .map(descriptor -> descriptor.getAspect().getLabel())
-                    .collect(Collectors.toList());
-            fSelectionY.setInput(input);
+            enableButton();
+        }
+    }
+
+    private class ListSelectionEvent implements SelectionListener {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            enableButton();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+            enableButton();
+        }
+    }
+
+    private class CheckBoxSelectedEvent implements ICheckStateListener {
+        @Override
+        public void checkStateChanged(CheckStateChangedEvent event) {
+            if(fSelectionY.getCheckedElements().length == 0) {
+                fAspectFilter = null;
+            } else if(fSelectionY.getCheckedElements().length == 1) {
+                if(!event.getChecked()) {
+                    return;
+                }
+
+                for(DataDescriptor descriptor : AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors()) {
+                    if(descriptor.getAspect().getLabel().equals(event.getElement())) {
+                        fAspectFilter = descriptor.getAspect().getClass();
+                        break;
+                    }
+                }
+            }
+
+            enableButton();
+            populateY();
+        }
+    }
+
+    private class ResizeEvent implements Listener {
+        @Override
+        public void handleEvent(Event event) {
+            Rectangle rect = getShell().getClientArea();
+            Point size = fComposite.computeSize(rect.width, SWT.DEFAULT);
+            fComposite.setSize(size);
         }
     }
 
@@ -61,11 +115,9 @@ public class ChartMakerDialog extends Dialog {
         fComboDataModel = new Combo (parent, SWT.READ_ONLY);
         fSelectionX = new List(parent, SWT.BORDER);
         fSelectionY = CheckboxTableViewer.newCheckList(parent, SWT.BORDER);
+        fAspectFilter = null;
 
         setShellStyle(getShellStyle() | SWT.RESIZE);
-        AbstractDataModel.getInstances().stream()
-                .map(model -> model.getName().hashCode())
-                .forEach(System.out::println);
     }
 
     @Override
@@ -133,7 +185,7 @@ public class ChartMakerDialog extends Dialog {
 
         fComboDataModel.setParent(selector);
         fComboDataModel.setLayoutData(selectorComboGridData);
-        fComboDataModel.addSelectionListener(new DataModelSelected());
+        fComboDataModel.addSelectionListener(new DataModelSelectedEvent());
         AbstractDataModel.getInstances().stream()
                 .map(model -> model.getName())
                 .forEach(fComboDataModel::add);
@@ -161,28 +213,85 @@ public class ChartMakerDialog extends Dialog {
 
         fSelectionX.setParent(creatorGroup);
         fSelectionX.setLayoutData(creatorBoxGridData);
-        fSelectionY.getControl().setParent(creatorGroup);
-        fSelectionY.getControl().setLayoutData(creatorBoxGridData);
+        fSelectionX.addSelectionListener(new ListSelectionEvent());
 
         IStructuredContentProvider contentProvider = ArrayContentProvider.getInstance();
+        fSelectionY.getControl().setParent(creatorGroup);
+        fSelectionY.getControl().setLayoutData(creatorBoxGridData);
         fSelectionY.setContentProvider(contentProvider);
-
-       // fSelectionY.setContentProvider(provider);
+        fSelectionY.addCheckStateListener(new CheckBoxSelectedEvent());
 
         /*
          * Options
          */
         //TODO
 
-        this.getShell().addListener(SWT.Resize, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                Rectangle rect = getShell().getClientArea();
-                Point size = fComposite.computeSize(rect.width, SWT.DEFAULT);
-                fComposite.setSize(size);
-            }
-        });
+        this.getShell().addListener(SWT.Resize, new ResizeEvent());
+
 
         return fComposite;
+    }
+
+    @Override
+    public void create() {
+        super.create();
+
+        getButton(IDialogConstants.OK_ID).setEnabled(false);
+    }
+
+    @Override
+    public void okPressed() {
+        java.util.List<DataDescriptor> descriptors = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors();
+
+        DataDescriptor xAxis = descriptors.get(fSelectionX.getSelectionIndex());
+        Collection<DataDescriptor> yAxis = new ArrayList<>();
+
+        for(DataDescriptor descriptor : descriptors) {
+            for(Object entry : fSelectionY.getCheckedElements()) {
+                if(descriptor.getAspect().getLabel().equals(entry.toString())) {
+                    yAxis.add(descriptor);
+                }
+            }
+        }
+
+        fDataSeries = new DataSeries(xAxis, yAxis);
+        super.okPressed();
+    }
+
+    public @Nullable DataSeries getDataSeries() {
+        return fDataSeries;
+    }
+
+    private void enableButton() {
+        if(fComboDataModel.getSelectionIndex() == -1 || fSelectionX.getSelectionIndex() == -1 || fSelectionY.getCheckedElements().length == 0) {
+            getButton(IDialogConstants.OK_ID).setEnabled(false);
+            return;
+        }
+
+        getButton(IDialogConstants.OK_ID).setEnabled(true);
+    }
+
+    private void populateX() {
+        fSelectionX.removeAll();
+        AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors().stream()
+                .map(descriptor -> descriptor.getAspect().getLabel())
+                .forEach(fSelectionX::add);
+    }
+
+    private void populateY() {
+        java.util.List<String> input = new ArrayList<>();
+
+        if(fAspectFilter == null) {
+            input = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors().stream()
+                    .map(descriptor -> descriptor.getAspect().getLabel())
+                    .collect(Collectors.toList());
+        } else {
+            input = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors().stream()
+                    .filter(descriptor -> descriptor.getAspect().getClass() == fAspectFilter)
+                    .map(descriptor -> descriptor.getAspect().getLabel())
+                    .collect(Collectors.toList());
+        }
+
+        fSelectionY.setInput(input);
     }
 }
