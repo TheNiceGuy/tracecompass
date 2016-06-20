@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.analysis.timing.core.segmentstore.statistics.SegmentStoreStatistics;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.DurationAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.IntAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
@@ -35,35 +34,42 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
     private final class MinimumSource implements IDataSource {
         @Override
         public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream().map(segment -> segment.getMinSegment().getLength());
+            return fSegmentStats.values().stream()
+                    .map(segment -> segment.getMinSegment().getLength())
+                    .map(num -> num.doubleValue());
         }
     }
 
     private final class MaximumSource implements IDataSource {
         @Override
         public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream().map(segment -> segment.getMaxSegment().getLength());
+            return fSegmentStats.values().stream()
+                    .map(segment -> segment.getMaxSegment().getLength())
+                    .map(num -> num.doubleValue());
         }
     }
 
     private final class AverageSource implements IDataSource {
         @Override
         public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream().map(segment -> segment.getAverage());
+            return fSegmentStats.values().stream()
+                    .map(segment -> segment.getAverage());
         }
     }
 
     private final class StandardDeviationSource implements IDataSource {
         @Override
         public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream().map(segment -> segment.getStdDev());
+            return fSegmentStats.values().stream()
+                    .map(segment -> segment.getStdDev());
         }
     }
 
     private final class CountSource implements IDataSource {
         @Override
         public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream().map(segment -> segment.getNbSegments());
+            return fSegmentStats.values().stream()
+                    .map(segment -> segment.getNbSegments());
         }
     }
 

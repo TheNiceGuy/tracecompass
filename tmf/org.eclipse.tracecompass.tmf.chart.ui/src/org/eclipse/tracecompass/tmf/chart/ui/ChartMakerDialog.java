@@ -27,6 +27,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Event;
@@ -46,6 +47,8 @@ public class ChartMakerDialog extends SelectionDialog {
     private Combo fComboDataModel;
     private List fSelectionX;
     private CheckboxTableViewer fSelectionY;
+    private Button fXLogscale;
+    private Button fYLogscale;
 
     private Class<?> fAspectFilter;
 
@@ -69,11 +72,13 @@ public class ChartMakerDialog extends SelectionDialog {
         @Override
         public void widgetSelected(SelectionEvent e) {
             enableButton();
+            enableXLog();
         }
 
         @Override
         public void widgetDefaultSelected(SelectionEvent e) {
             enableButton();
+            enableXLog();
         }
     }
 
@@ -113,9 +118,11 @@ public class ChartMakerDialog extends SelectionDialog {
         super(parent);
 
         fComboDataModel = new Combo (parent, SWT.READ_ONLY);
-        fSelectionX = new List(parent, SWT.BORDER);
+        fSelectionX = new List(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         fSelectionY = CheckboxTableViewer.newCheckList(parent, SWT.BORDER);
         fAspectFilter = null;
+        fXLogscale = new Button(parent, SWT.CHECK);
+        fYLogscale = new Button(parent, SWT.CHECK);
 
         setShellStyle(getShellStyle() | SWT.RESIZE);
     }
@@ -150,7 +157,7 @@ public class ChartMakerDialog extends SelectionDialog {
         creatorLayout.numColumns = 2;
 
         GridLayout optionsLayout = new GridLayout();
-        optionsLayout.numColumns = 2;
+        optionsLayout.numColumns = 1;
 
         fComposite.setLayout(baseLayout);
 
@@ -224,7 +231,11 @@ public class ChartMakerDialog extends SelectionDialog {
         /*
          * Options
          */
-        //TODO
+        fXLogscale.setParent(optionsGroup);
+        fXLogscale.setText("Logarithmic Scale X");
+
+        fYLogscale.setParent(optionsGroup);
+        fYLogscale.setText("Logarithmic Scale Y");
 
         this.getShell().addListener(SWT.Resize, new ResizeEvent());
 
@@ -254,7 +265,10 @@ public class ChartMakerDialog extends SelectionDialog {
             }
         }
 
-        fDataSeries = new DataSeries(xAxis, yAxis);
+        fDataSeries = new DataSeries(xAxis, yAxis,
+                fXLogscale.getSelection(),
+                fYLogscale.getSelection());
+
         super.okPressed();
     }
 
@@ -269,6 +283,17 @@ public class ChartMakerDialog extends SelectionDialog {
         }
 
         getButton(IDialogConstants.OK_ID).setEnabled(true);
+    }
+
+    private void enableXLog() {
+        int index = fSelectionX.getSelectionIndex();
+
+        if(AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors().get(index).getAspect().isContinuous()) {
+            fXLogscale.setEnabled(true);
+        } else {
+            fXLogscale.setEnabled(false);
+            fXLogscale.setSelection(false);
+        }
     }
 
     private void populateX() {

@@ -10,6 +10,7 @@ package org.eclipse.tracecompass.tmf.chart.ui;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
@@ -30,7 +31,9 @@ public class ChartView extends TmfView {
 
     @Override
     public void createPartControl(Composite parent) {
-        final Button button = new Button(parent, SWT.PUSH);
+        SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
+
+        Button button = new Button(sashForm, SWT.PUSH);
         button.setText("Click Me");
 
         button.addSelectionListener(new SelectionListener() {
@@ -40,13 +43,13 @@ public class ChartView extends TmfView {
                 ChartMakerDialog maker = new ChartMakerDialog(parent.getShell());
 
                 maker.open();
-                DataSeries series = maker.getDataSeries();
-                if(series == null) {
+                DataSeries dataSeries = maker.getDataSeries();
+                if(dataSeries == null) {
                     return;
                 }
 
-                System.out.println(series.getXData().getAspect().getLabel());
-                series.getYData().stream().map(a -> a.getAspect().getLabel()).forEach(System.out::println);
+                ChartDrawer chart = new ChartDrawer(sashForm, dataSeries, null);
+                chart.create();
             }
 
             @Override
