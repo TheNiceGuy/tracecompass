@@ -8,10 +8,13 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.analysis.timing.core.segmentstore.statistics;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.DurationAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.IntAspect;
@@ -20,59 +23,78 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.IDataSource;
 
+/**
+ * This is a simple {@link AbstractDataModel} implementation for the system call
+ * latency statistics analysis.
+ *
+ * @author gabriel
+ */
 public class SystemCallLatencyDataModel extends AbstractDataModel {
 
     Map<String, SegmentStoreStatistics> fSegmentStats;
 
     private final class NameSource implements IDataSource {
         @Override
-        public @Nullable Stream<?> getStream() {
-            return fSegmentStats.keySet().stream();
+        public @NonNull Stream<String> getStreamString() {
+            Stream<String> stream = fSegmentStats.keySet().stream();
+            return checkNotNull(stream);
         }
     }
 
     private final class MinimumSource implements IDataSource {
         @Override
-        public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream()
+        public @NonNull Stream<Double> getStreamNumerical() {
+            Stream<Double> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getMinSegment().getLength())
                     .map(num -> num.doubleValue());
+            return checkNotNull(stream);
         }
     }
 
     private final class MaximumSource implements IDataSource {
         @Override
-        public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream()
+        public @NonNull Stream<Double> getStreamNumerical() {
+            Stream<Double> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getMaxSegment().getLength())
                     .map(num -> num.doubleValue());
+            return checkNotNull(stream);
         }
     }
 
     private final class AverageSource implements IDataSource {
         @Override
-        public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream()
+        public @NonNull Stream<Double> getStreamNumerical() {
+            Stream<Double> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getAverage());
+            return checkNotNull(stream);
         }
     }
 
     private final class StandardDeviationSource implements IDataSource {
         @Override
-        public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream()
+        public @NonNull Stream<Double> getStreamNumerical() {
+            Stream<Double> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getStdDev());
+            return checkNotNull(stream);
         }
     }
 
     private final class CountSource implements IDataSource {
         @Override
-        public @Nullable Stream<?> getStream() {
-            return fSegmentStats.values().stream()
-                    .map(segment -> segment.getNbSegments());
+        public @NonNull Stream<Double> getStreamNumerical() {
+            Stream<Double> stream = fSegmentStats.values().stream()
+                    .map(segment -> segment.getNbSegments())
+                    .map(num -> num.doubleValue());
+            return checkNotNull(stream);
         }
     }
 
+    /**
+     * Constructor.
+     *
+     * @param name name of the analysis
+     * @param segmentStats statistics concerning the analysis
+     */
     public SystemCallLatencyDataModel(String name, @Nullable Map<String, SegmentStoreStatistics> segmentStats) {
         super(name);
 

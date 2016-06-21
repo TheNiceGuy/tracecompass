@@ -8,9 +8,12 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNullContents;
+
 import java.util.stream.Stream;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiEmptyAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.AbstractAspect;
@@ -22,6 +25,12 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.IDataSource;
 
+/**
+ * This is a simple {@link AbstractDataModel} implementation for any LAMI
+ * result table.
+ *
+ * @author gabriel
+ */
 public class LamiResultTableDataModel extends AbstractDataModel {
 
     LamiResultTable fResultTable;
@@ -35,9 +44,13 @@ public class LamiResultTableDataModel extends AbstractDataModel {
         }
 
         @Override
-        public @Nullable Stream<?> getStream() {
-            return fResultTable.getEntries().stream()
-                    .map(entry -> fAspect.resolveNumber(entry));
+        public @NonNull Stream<Double> getStreamNumerical() {
+            Stream<Double> stream = fResultTable.getEntries().stream()
+                    .map(entry -> fAspect.resolveNumber(entry))
+                    .filter(num -> num != null)
+                    .map(num -> (Double) num)
+                    .map(num -> num.doubleValue());
+            return checkNotNull(stream);
         }
     }
 
@@ -50,12 +63,18 @@ public class LamiResultTableDataModel extends AbstractDataModel {
         }
 
         @Override
-        public @Nullable Stream<?> getStream() {
-            return fResultTable.getEntries().stream()
-                    .map(entry -> fAspect.resolveString(entry));
+        public @NonNull Stream<String> getStreamString() {
+            Stream<String> stream = checkNotNullContents(fResultTable.getEntries().stream()
+                    .map(entry -> fAspect.resolveString(entry))
+                    .filter(num -> num != null));
+            return checkNotNull(stream);
         }
     }
 
+    /**
+     * @param name name of the table
+     * @param resultTable result table from a LAMI analysis
+     */
     public LamiResultTableDataModel(String name, LamiResultTable resultTable) {
         super(name);
 

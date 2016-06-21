@@ -8,30 +8,44 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.analysis.os.linux.core.latency;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.IDataSource;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
 import org.eclipse.tracecompass.segmentstore.core.SegmentStoreDataModel;
 
+/**
+ * This is a simple {@link AbstractDataModel} implementation extending
+ * the {@link ISegmentStore} interface for the system call analysis.
+ *
+ * @author gabriel
+ * @since 2.0
+ */
 public class SystemCallDataModel extends SegmentStoreDataModel {
 
     ISegmentStore<ISegment> fSegmentStore;
 
     private final class NameSource implements IDataSource {
         @Override
-        public @Nullable  Stream<?> getStream() {
-            return fSegmentStore.stream()
+        public @NonNull Stream<String> getStreamString() {
+            Stream<String> stream = fSegmentStore.stream()
                     .map(segment -> ((SystemCall)segment).getName());
+            return checkNotNull(stream);
         }
     }
 
-    public SystemCallDataModel(String name, @NonNull ISegmentStore<ISegment> segmentStore) {
+    /**
+     * @param name name of the analysis
+     * @param segmentStore segment store concerning the system call analysis
+     */
+    public SystemCallDataModel(String name, ISegmentStore<ISegment> segmentStore) {
         super(name, segmentStore);
 
         fSegmentStore = segmentStore;

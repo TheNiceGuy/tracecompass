@@ -55,7 +55,7 @@ public class ChartDrawer {
         for(DataDescriptor descriptor : fSeries.getYData()) {
             String title = descriptor.getAspect().getLabel();
 
-            double[] yData = descriptor.getSource().getStream()
+            double[] yData = descriptor.getSource().getStreamNumerical()
                     .mapToDouble(num -> (double) num)
                     .toArray();
 
@@ -74,7 +74,7 @@ public class ChartDrawer {
         }
 
         if(fSeries.getXData().getAspect().isContinuous()) {
-           double[] xData = fSeries.getXData().getSource().getStream()
+           double[] xData = fSeries.getXData().getSource().getStreamNumerical()
                    .mapToDouble(num -> (double) num)
                    .toArray();
 
@@ -82,7 +82,7 @@ public class ChartDrawer {
                series.setXSeries(xData);
            }
         } else {
-            List<Object> xList = fSeries.getXData().getSource().getStream()
+            List<Object> xList = fSeries.getXData().getSource().getStreamString()
                     .collect(Collectors.toList());
 
             String[] xData = new String[xList.size()];

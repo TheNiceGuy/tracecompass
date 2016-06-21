@@ -8,9 +8,11 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.tmf.chart.core.module;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.util.stream.Stream;
 
-import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.jdt.annotation.NonNull;
 
 /**
  * This interface allows the reading of specific type of data from an analysis.
@@ -19,7 +21,16 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 public interface IDataSource {
     /**
-     * @return stream of data
+     * @return stream of numbers
      */
-    @Nullable Stream<?> getStream();
+    default @NonNull Stream<@NonNull Double> getStreamNumerical() {
+        return checkNotNull(Stream.empty());
+    }
+
+    /**
+     * @return stream of strings
+     */
+    default @NonNull Stream<@NonNull String> getStreamString() {
+        return checkNotNull(Stream.empty());
+    }
 }

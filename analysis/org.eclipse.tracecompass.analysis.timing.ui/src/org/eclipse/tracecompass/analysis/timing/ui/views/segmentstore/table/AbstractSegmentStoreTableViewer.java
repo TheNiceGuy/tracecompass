@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.IAnalysisProgressListener;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.ISegmentStoreProvider;
 import org.eclipse.tracecompass.common.core.NonNullUtils;
+import org.eclipse.tracecompass.internal.analysis.os.linux.core.latency.SystemCallDataModel;
 import org.eclipse.tracecompass.internal.analysis.timing.ui.views.segmentstore.table.Messages;
 import org.eclipse.tracecompass.internal.analysis.timing.ui.views.segmentstore.table.SegmentStoreContentProvider;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
@@ -93,6 +94,8 @@ public abstract class AbstractSegmentStoreTableViewer extends TmfSimpleTableView
             if (activeProvider.equals(fSegmentProvider)) {
                 updateModel(data);
             }
+
+            new SystemCallDataModel("System Call Latencies", getSegmentProvider().getSegmentStore());
         }
     }
 
