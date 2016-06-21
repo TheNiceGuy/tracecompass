@@ -1,5 +1,7 @@
 package org.eclipse.tracecompass.tmf.chart.ui;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -10,10 +12,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.ui.format.LamiLabelFormat;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
 import org.swtchart.Chart;
+import org.swtchart.IAxisTick;
 import org.swtchart.IBarSeries;
+import org.swtchart.ILineSeries;
 import org.swtchart.ISeries.SeriesType;
 
 import com.google.common.collect.ImmutableList;
@@ -23,8 +28,6 @@ public class ChartDrawer {
     Composite fParent;
 
     DataSeries fSeries;
-
-    SeriesType fType;
 
     Chart fChart;
 
@@ -37,10 +40,9 @@ public class ChartDrawer {
             new Color(Display.getDefault(), 119, 190, 219)
             );
 
-    public ChartDrawer(Composite parent, DataSeries series, SeriesType type) {
+    public ChartDrawer(Composite parent, DataSeries series) {
         fParent = parent;
         fSeries = series;
-        fType = type;
     }
 
     public void create() {
@@ -50,8 +52,8 @@ public class ChartDrawer {
         fChart.getAxisSet().getXAxis(0).getTitle().setText(generateXTitle());
         fChart.getAxisSet().getYAxis(0).getTitle().setText(generateYTitle());
 
-        Iterator<@NonNull Color> color = COLORS.iterator();
-        List<IBarSeries> seriesList = new ArrayList<>();
+//        Iterator<@NonNull Color> color = COLORS.iterator();
+        List<ILineSeries> seriesList = new ArrayList<>();
         for(DataDescriptor descriptor : fSeries.getYData()) {
             String title = descriptor.getAspect().getLabel();
 
@@ -59,16 +61,16 @@ public class ChartDrawer {
                     .mapToDouble(num -> (double) num)
                     .toArray();
 
-            IBarSeries series = (IBarSeries) fChart.getSeriesSet()
-                    .createSeries(SeriesType.BAR, title);
+            ILineSeries series = (ILineSeries) fChart.getSeriesSet()
+                    .createSeries(SeriesType.LINE, title);
             series.setYSeries(yData);
 
 
-            if(color.hasNext()) {
-                series.setBarColor(color.next());
-            } else {
-                color = COLORS.iterator();
-            }
+//            if(color.hasNext()) {
+//                series.setBarColor(color.next());
+//            } else {
+//                color = COLORS.iterator();
+//            }
 
             seriesList.add(series);
         }
@@ -78,11 +80,12 @@ public class ChartDrawer {
                    .mapToDouble(num -> (double) num)
                    .toArray();
 
-           for(IBarSeries series : seriesList) {
+           for(ILineSeries series : seriesList) {
                series.setXSeries(xData);
            }
         } else {
             List<Object> xList = fSeries.getXData().getSource().getStreamString()
+                    .distinct()
                     .collect(Collectors.toList());
 
             String[] xData = new String[xList.size()];

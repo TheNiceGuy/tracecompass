@@ -11,15 +11,20 @@ package org.eclipse.tracecompass.internal.tmf.chart.core.module;
 import java.util.Collection;
 
 public class DataSeries {
+    private final ChartType fType;
     private DataDescriptor fXData;
     private Collection<DataDescriptor> fYData;
     private boolean fXLogscale;
     private boolean fYLogscale;
 
     /**
-     * TODO: add title?
-     *       chart type?
+     * TODO: rename
      */
+    public enum ChartType {
+        BAR_CHART,
+        SCATTER_CHART,
+        PIE_CHART;
+    }
 
     public DataSeries(DataDescriptor xData, Collection<DataDescriptor> yData,
             boolean xLogscale, boolean yLogscale) {
@@ -27,6 +32,14 @@ public class DataSeries {
         fYData = yData;
         fXLogscale = xLogscale;
         fYLogscale = yLogscale;
+        /**
+         * TODO: modify constructor
+         */
+        fType = ChartType.SCATTER_CHART;
+    }
+
+    public ChartType getChartType() {
+        return fType;
     }
 
     public DataDescriptor getXData() {

@@ -68,8 +68,8 @@ public class SegmentStoreDataModel extends AbstractDataModel {
 
         fSegmentStore = segmentStore;
 
-        getDataDescriptors().add(new DataDescriptor(new TimestampAspect(Messages.SegmentStoreDataModel_StartAspect), new StartSource()));
-        getDataDescriptors().add(new DataDescriptor(new TimestampAspect(Messages.SegmentStoreDataModel_EndAspect), new EndSource()));
-        getDataDescriptors().add(new DataDescriptor(new DurationAspect(Messages.SegmentStoreDataModel_DurationAspect), new LengthSource()));
+        getDataDescriptors().add(new DataDescriptor(new TimestampAspect("Start"), new StartSource()));
+        getDataDescriptors().add(new DataDescriptor(new TimestampAspect("End"), new EndSource()));
+        getDataDescriptors().add(new DataDescriptor(new DurationAspect("Length"), new LengthSource()));
     }
 }

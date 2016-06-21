@@ -27,7 +27,7 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.module.IDataSource;
  * This is a simple {@link AbstractDataModel} implementation for the system call
  * latency statistics analysis.
  *
- * @author gabriel
+ * @author Gabriel-Andrew Pollo-Guilbert
  */
 public class SystemCallLatencyDataModel extends AbstractDataModel {
 

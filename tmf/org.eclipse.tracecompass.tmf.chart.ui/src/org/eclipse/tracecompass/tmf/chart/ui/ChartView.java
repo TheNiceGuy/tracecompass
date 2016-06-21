@@ -48,8 +48,10 @@ public class ChartView extends TmfView {
                     return;
                 }
 
-                ChartDrawer chart = new ChartDrawer(sashForm, dataSeries, null);
-                chart.create();
+//                ChartDrawer chart = new ChartDrawer(sashForm, dataSeries);
+//                chart.create();
+
+                IChartViewer chart = IChartViewer.createChart(sashForm, dataSeries);
             }
 
             @Override

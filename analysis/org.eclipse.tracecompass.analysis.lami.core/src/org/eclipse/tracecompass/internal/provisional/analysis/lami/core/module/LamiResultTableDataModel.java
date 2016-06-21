@@ -29,7 +29,7 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.module.IDataSource;
  * This is a simple {@link AbstractDataModel} implementation for any LAMI
  * result table.
  *
- * @author gabriel
+ * @author Gabriel-Andrew Poll-Guilbert
  */
 public class LamiResultTableDataModel extends AbstractDataModel {
 
@@ -48,7 +48,6 @@ public class LamiResultTableDataModel extends AbstractDataModel {
             Stream<Double> stream = fResultTable.getEntries().stream()
                     .map(entry -> fAspect.resolveNumber(entry))
                     .filter(num -> num != null)
-                    .map(num -> (Double) num)
                     .map(num -> num.doubleValue());
             return checkNotNull(stream);
         }

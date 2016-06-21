@@ -36,11 +36,17 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.List;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.AbstractAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
+/**
+ * This dialog is used to configure series before building a chart.
+ *
+ * @author gabriel
+ */
 public class ChartMakerDialog extends SelectionDialog {
 
     private Composite fComposite;
@@ -50,7 +56,7 @@ public class ChartMakerDialog extends SelectionDialog {
     private Button fXLogscale;
     private Button fYLogscale;
 
-    private Class<?> fAspectFilter;
+    private AbstractAspect fAspectFilter;
 
     private int fDataModelIndex;
     private @Nullable DataSeries fDataSeries;
@@ -89,18 +95,20 @@ public class ChartMakerDialog extends SelectionDialog {
                 fAspectFilter = null;
             } else if(fSelectionY.getCheckedElements().length == 1) {
                 if(!event.getChecked()) {
+                    enableYLog();
                     return;
                 }
 
                 for(DataDescriptor descriptor : AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors()) {
                     if(descriptor.getAspect().getLabel().equals(event.getElement())) {
-                        fAspectFilter = descriptor.getAspect().getClass();
+                        fAspectFilter = descriptor.getAspect();
                         break;
                     }
                 }
             }
 
             enableButton();
+            enableYLog();
             populateY();
         }
     }
@@ -114,6 +122,11 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    /**
+     * Constructor.
+     *
+     * @param parent parent shell
+     */
     public ChartMakerDialog(Shell parent) {
         super(parent);
 
@@ -171,12 +184,12 @@ public class ChartMakerDialog extends SelectionDialog {
         selector.setLayoutData(baseSelectorGridData);
 
         Group creatorGroup = new Group(fComposite, SWT.BORDER);
-        creatorGroup.setText("Series Creator");
+        creatorGroup.setText(Messages.ChartMakerDialog_SeriesCreator);
         creatorGroup.setLayout(creatorLayout);
         creatorGroup.setLayoutData(baseCreatorGridData);
 
         Group optionsGroup = new Group(fComposite, SWT.BORDER);
-        optionsGroup.setText("Options");
+        optionsGroup.setText(Messages.ChartMakerDialog_Options);
         optionsGroup.setLayout(optionsLayout);
         optionsGroup.setLayoutData(baseOptionsGridData);
 
@@ -188,7 +201,7 @@ public class ChartMakerDialog extends SelectionDialog {
         selectorComboGridData .grabExcessHorizontalSpace = true;
 
         Label selectorLabel = new Label(selector, SWT.NONE);
-        selectorLabel.setText("Available Data");
+        selectorLabel.setText(Messages.ChartMakerDialog_AvailableData);
 
         fComboDataModel.setParent(selector);
         fComboDataModel.setLayoutData(selectorComboGridData);
@@ -211,11 +224,11 @@ public class ChartMakerDialog extends SelectionDialog {
         creatorBoxGridData.grabExcessVerticalSpace = true;
 
         Label creatorLabelX = new Label(creatorGroup, SWT.NONE);
-        creatorLabelX.setText("X Axis");
+        creatorLabelX.setText(Messages.ChartMakerDialog_XAxis);
         creatorLabelX.setLayoutData(creatorLabelGridData);
 
         Label creatorLabelY = new Label(creatorGroup, SWT.NONE);
-        creatorLabelY.setText("Y Axis");
+        creatorLabelY.setText(Messages.ChartMakerDialog_YAxis);
         creatorLabelY.setLayoutData(creatorLabelGridData);
 
         fSelectionX.setParent(creatorGroup);
@@ -232,10 +245,10 @@ public class ChartMakerDialog extends SelectionDialog {
          * Options
          */
         fXLogscale.setParent(optionsGroup);
-        fXLogscale.setText("Logarithmic Scale X");
+        fXLogscale.setText(Messages.ChartMakerDialog_LogScaleX);
 
         fYLogscale.setParent(optionsGroup);
-        fYLogscale.setText("Logarithmic Scale Y");
+        fYLogscale.setText(Messages.ChartMakerDialog_LogScaleY);
 
         this.getShell().addListener(SWT.Resize, new ResizeEvent());
 
@@ -272,6 +285,9 @@ public class ChartMakerDialog extends SelectionDialog {
         super.okPressed();
     }
 
+    /**
+     * @return selected data series
+     */
     public @Nullable DataSeries getDataSeries() {
         return fDataSeries;
     }
@@ -296,6 +312,15 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    private void enableYLog() {
+        if(fAspectFilter != null && fAspectFilter.isContinuous()) {
+            fYLogscale.setEnabled(true);
+        } else {
+            fYLogscale.setEnabled(false);
+            fYLogscale.setSelection(false);
+        }
+    }
+
     private void populateX() {
         fSelectionX.removeAll();
         AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors().stream()
@@ -312,7 +337,7 @@ public class ChartMakerDialog extends SelectionDialog {
                     .collect(Collectors.toList());
         } else {
             input = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors().stream()
-                    .filter(descriptor -> descriptor.getAspect().getClass() == fAspectFilter)
+                    .filter(descriptor -> descriptor.getAspect().getClass() == fAspectFilter.getClass())
                     .map(descriptor -> descriptor.getAspect().getLabel())
                     .collect(Collectors.toList());
         }
