@@ -40,26 +40,42 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.AbstractAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries.ChartType;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
 /**
  * This dialog is used to configure series before building a chart.
  *
- * @author gabriel
+ * @author Gabriel-Andrew Pollo-Guilbert
  */
 public class ChartMakerDialog extends SelectionDialog {
 
     private Composite fComposite;
+
     private Combo fComboDataModel;
+
+    private Combo fComboChartType;
+
     private List fSelectionX;
+
     private CheckboxTableViewer fSelectionY;
+
     private Button fXLogscale;
+
     private Button fYLogscale;
 
     private AbstractAspect fAspectFilter;
 
     private int fDataModelIndex;
+
     private @Nullable DataSeries fDataSeries;
+
+    private class ChartTypeSelectedEvent extends SelectionAdapter {
+        @Override
+        public void widgetSelected(SelectionEvent event) {
+            enableButton();
+        }
+    }
 
     private class DataModelSelectedEvent extends SelectionAdapter {
         @Override
@@ -131,6 +147,7 @@ public class ChartMakerDialog extends SelectionDialog {
         super(parent);
 
         fComboDataModel = new Combo (parent, SWT.READ_ONLY);
+        fComboChartType = new Combo (parent, SWT.READ_ONLY);
         fSelectionX = new List(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
         fSelectionY = CheckboxTableViewer.newCheckList(parent, SWT.BORDER);
         fAspectFilter = null;
@@ -194,11 +211,20 @@ public class ChartMakerDialog extends SelectionDialog {
         optionsGroup.setLayoutData(baseOptionsGridData);
 
         /*
-         * Data model selector
+         * Chart type selector
          */
         GridData selectorComboGridData = new GridData(SWT.FILL);
-        selectorComboGridData .horizontalAlignment = SWT.FILL;
-        selectorComboGridData .grabExcessHorizontalSpace = true;
+        selectorComboGridData.horizontalAlignment = SWT.FILL;
+        selectorComboGridData.grabExcessHorizontalSpace = true;
+
+        Label typeLabel = new Label(selector, SWT.NONE);
+        typeLabel.setText(Messages.ChartMakerDialog_ChartType);
+
+        fComboChartType.setParent(selector);
+        fComboChartType.setLayoutData(selectorComboGridData);
+        fComboChartType.add(DataSeries.ChartType.BAR_CHART.toString());
+        fComboChartType.add(DataSeries.ChartType.SCATTER_CHART.toString());
+        fComboChartType.addSelectionListener(new ChartTypeSelectedEvent());
 
         Label selectorLabel = new Label(selector, SWT.NONE);
         selectorLabel.setText(Messages.ChartMakerDialog_AvailableData);
@@ -267,6 +293,11 @@ public class ChartMakerDialog extends SelectionDialog {
     public void okPressed() {
         java.util.List<DataDescriptor> descriptors = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors();
 
+        ChartType type = ChartType.resolveName(fComboChartType.getText());
+        if(type == null) {
+            return;
+        }
+
         DataDescriptor xAxis = descriptors.get(fSelectionX.getSelectionIndex());
         Collection<DataDescriptor> yAxis = new ArrayList<>();
 
@@ -280,7 +311,8 @@ public class ChartMakerDialog extends SelectionDialog {
 
         fDataSeries = new DataSeries(xAxis, yAxis,
                 fXLogscale.getSelection(),
-                fYLogscale.getSelection());
+                fYLogscale.getSelection(),
+                type);
 
         super.okPressed();
     }
@@ -293,7 +325,11 @@ public class ChartMakerDialog extends SelectionDialog {
     }
 
     private void enableButton() {
-        if(fComboDataModel.getSelectionIndex() == -1 || fSelectionX.getSelectionIndex() == -1 || fSelectionY.getCheckedElements().length == 0) {
+        if(fComboDataModel.getSelectionIndex() == -1 ||
+           fComboChartType.getSelectionIndex() == -1 ||
+           fSelectionX.getSelectionIndex() == -1 ||
+           fSelectionY.getCheckedElements().length == 0)
+        {
             getButton(IDialogConstants.OK_ID).setEnabled(false);
             return;
         }

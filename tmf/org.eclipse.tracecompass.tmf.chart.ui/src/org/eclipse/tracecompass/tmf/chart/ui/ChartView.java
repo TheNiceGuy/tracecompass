@@ -35,9 +35,7 @@ public class ChartView extends TmfView {
 
         Button button = new Button(sashForm, SWT.PUSH);
         button.setText("Click Me");
-
         button.addSelectionListener(new SelectionListener() {
-
             @Override
             public void widgetSelected(SelectionEvent e) {
                 ChartMakerDialog maker = new ChartMakerDialog(parent.getShell());
@@ -48,10 +46,7 @@ public class ChartView extends TmfView {
                     return;
                 }
 
-//                ChartDrawer chart = new ChartDrawer(sashForm, dataSeries);
-//                chart.create();
-
-                IChartViewer chart = IChartViewer.createChart(sashForm, dataSeries);
+                IChartViewer.createChart(sashForm, dataSeries);
             }
 
             @Override

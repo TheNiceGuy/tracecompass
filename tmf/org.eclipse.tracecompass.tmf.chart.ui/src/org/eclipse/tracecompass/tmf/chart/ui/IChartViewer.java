@@ -18,8 +18,16 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Base class for any chart.
+ *
+ * @author Gabriel-Andrew Pollo-Guilbert
+ */
 public interface IChartViewer {
 
+    /**
+     * List of colors used when coloring series.
+     */
     public static final List<@NonNull Color> COLORS = ImmutableList.of(
             new Color(Display.getDefault(),  72, 120, 207),
             new Color(Display.getDefault(), 106, 204, 101),
@@ -34,6 +42,13 @@ public interface IChartViewer {
      */
     void dispose();
 
+    /**
+     * This method creates a chart from a data series.
+     *
+     * @param parent parent composite
+     * @param series data series to plot
+     * @return chart object
+     */
     static IChartViewer createChart(Composite parent, DataSeries series) {
         switch (series.getChartType()) {
         case BAR_CHART:
@@ -46,9 +61,6 @@ public interface IChartViewer {
              */
             return null;
         default:
-            /**
-             * TODO
-             */
             return null;
         }
     }

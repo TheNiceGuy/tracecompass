@@ -11,7 +11,7 @@ package org.eclipse.tracecompass.tmf.chart.ui;
 import org.eclipse.osgi.util.NLS;
 
 /**
- * Messages for the chart package.
+ * Messages for the chart package
  */
 public class Messages extends NLS {
     private static final String BUNDLE_NAME = "org.eclipse.tracecompass.tmf.chart.ui.messages"; //$NON-NLS-1$
@@ -19,6 +19,10 @@ public class Messages extends NLS {
      * Title for the selection of data
      */
     public static String ChartMakerDialog_AvailableData;
+    /**
+     * Title for the selection of the chart type
+     */
+    public static String ChartMakerDialog_ChartType;
     /**
      * Title for the enabling logarithmic scale for the X axis
      */
