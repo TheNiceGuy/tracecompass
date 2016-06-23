@@ -6,7 +6,7 @@
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.eclipse.tracecompass.internal.tmf.chart.core.module;
+package org.eclipse.tracecompass.internal.tmf.chart.core.source;
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
@@ -15,18 +15,11 @@ import java.util.stream.Stream;
 import org.eclipse.jdt.annotation.NonNull;
 
 /**
- * This interface allows the reading of specific type of data from an analysis.
+ * This interface allows reading of string data.
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
-public interface IDataSource {
-    /**
-     * @return stream of numbers
-     */
-    default @NonNull Stream<@NonNull Double> getStreamNumerical() {
-        return checkNotNull(Stream.empty());
-    }
-
+public interface IStringSource extends IDataSource {
     /**
      * @return stream of strings
      */

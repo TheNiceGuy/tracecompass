@@ -17,7 +17,7 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.DurationAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.TimestampAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.IDataSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
 
 /**
  * This is a simple {@link AbstractDataModel} implementation for
@@ -29,32 +29,29 @@ public class SegmentStoreDataModel extends AbstractDataModel {
 
     ISegmentStore<@NonNull ISegment> fSegmentStore;
 
-    private final class StartSource implements IDataSource {
+    private final class StartSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Double> getStreamNumerical() {
-            Stream<Double> stream = fSegmentStore.stream()
-                    .map(segment -> segment.getStart())
-                    .map(num -> num.doubleValue());
+        public @NonNull Stream<Number> getStreamNumber() {
+            Stream<Number> stream = fSegmentStore.stream()
+                    .map(segment -> segment.getStart());
             return checkNotNull(stream);
         }
     }
 
-    private final class EndSource implements IDataSource {
+    private final class EndSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Double> getStreamNumerical() {
-            Stream<Double> stream = fSegmentStore.stream()
-                    .map(segment -> segment.getEnd())
-                    .map(num -> num.doubleValue());
+        public @NonNull Stream<Number> getStreamNumber() {
+            Stream<Number> stream = fSegmentStore.stream()
+                    .map(segment -> segment.getEnd());
             return checkNotNull(stream);
         }
     }
 
-    private final class LengthSource implements IDataSource {
+    private final class LengthSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Double> getStreamNumerical() {
-            Stream<Double> stream = fSegmentStore.stream()
-                    .map(segment -> segment.getLength())
-                    .map(num -> num.doubleValue());
+        public @NonNull Stream<Number> getStreamNumber() {
+            Stream<Number> stream = fSegmentStore.stream()
+                    .map(segment -> segment.getLength());
             return checkNotNull(stream);
         }
     }
@@ -68,8 +65,8 @@ public class SegmentStoreDataModel extends AbstractDataModel {
 
         fSegmentStore = segmentStore;
 
-        getDataDescriptors().add(new DataDescriptor(new TimestampAspect("Start"), new StartSource()));
-        getDataDescriptors().add(new DataDescriptor(new TimestampAspect("End"), new EndSource()));
-        getDataDescriptors().add(new DataDescriptor(new DurationAspect("Length"), new LengthSource()));
+        getDataDescriptors().add(new DataDescriptor(new TimestampAspect(Messages.SegmentStoreDataModel_Start), new StartSource()));
+        getDataDescriptors().add(new DataDescriptor(new TimestampAspect(Messages.SegmentStoreDataModel_End), new EndSource()));
+        getDataDescriptors().add(new DataDescriptor(new DurationAspect(Messages.SegmentStoreDataModel_Length), new LengthSource()));
     }
 }

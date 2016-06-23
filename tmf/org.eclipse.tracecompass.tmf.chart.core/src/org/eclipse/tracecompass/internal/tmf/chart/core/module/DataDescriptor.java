@@ -9,6 +9,7 @@
 package org.eclipse.tracecompass.internal.tmf.chart.core.module;
 
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.AbstractAspect;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.IDataSource;
 
 public class DataDescriptor {
 

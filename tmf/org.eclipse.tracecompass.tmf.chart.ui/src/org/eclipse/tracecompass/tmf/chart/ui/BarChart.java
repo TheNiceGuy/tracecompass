@@ -8,12 +8,16 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.tmf.chart.ui;
 
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+
 import java.util.Iterator;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.IStringSource;
 import org.swtchart.IBarSeries;
 import org.swtchart.ISeries;
 import org.swtchart.ISeries.SeriesType;
@@ -50,15 +54,16 @@ public class BarChart extends XYChartViewer {
 
         if(descriptor.getAspect().isContinuous()) {
             // generate data if the aspect is continuous
-            data = descriptor.getSource().getStreamNumerical()
-                    .mapToDouble(num -> (double) num)
+            data = ((INumericalSource) descriptor.getSource()).getStreamNumber()
+                    .mapToDouble(num -> num.doubleValue())
                     .toArray();
         } else {
             // generate unique position for each string
-            generateLabelMap(descriptor.getSource().getStreamString(), getYMap());
+            generateLabelMap(((IStringSource) descriptor.getSource()).getStreamString(), getYMap());
 
-            data = descriptor.getSource().getStreamString()
+            data = ((IStringSource) descriptor.getSource()).getStreamString()
                     .map(str -> getYMap().get(str))
+                    .map(num -> checkNotNull(num))
                     .mapToDouble(num -> (double) num)
                     .toArray();
         }
@@ -71,19 +76,23 @@ public class BarChart extends XYChartViewer {
         double[] data;
 
         if(descriptor.getAspect().isContinuous()) {
-            generateLabelMap(descriptor.getSource().getStreamNumerical().map(num -> num.toString()), getXMap());
+            generateLabelMap(((INumericalSource) descriptor.getSource()).getStreamNumber()
+                    .map(num -> num.toString()), getXMap());
 
             // generate data
-            data = descriptor.getSource().getStreamNumerical().map(num -> num.toString())
+            data = ((INumericalSource) descriptor.getSource()).getStreamNumber()
+                    .map(num -> num.toString())
                     .map(str -> getXMap().get(str))
-                    .mapToDouble(num -> (double) num)
+                    .map(num -> checkNotNull(num))
+                    .mapToDouble(num -> num.doubleValue())
                     .toArray();
         } else {
-            generateLabelMap(descriptor.getSource().getStreamString(), getXMap());
+            generateLabelMap(((IStringSource) descriptor.getSource()).getStreamString(), getXMap());
 
             // generate data
-            data = descriptor.getSource().getStreamString()
+            data = ((IStringSource) descriptor.getSource()).getStreamString()
                     .map(str -> getXMap().get(str))
+                    .map(num -> checkNotNull(num))
                     .mapToDouble(num -> (double) num)
                     .toArray();
         }

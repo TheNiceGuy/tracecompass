@@ -20,4 +20,5 @@ Export-Package: org.eclipse.tracecompass.analysis.timing.core.segmentstore,
  org.eclipse.tracecompass.internal.analysis.timing.core,
  org.eclipse.tracecompass.internal.analysis.timing.core.store;x-friends:="org.eclipse.tracecompass.analysis.timing.core.tests,org.eclipse.tracecompass.tmf.analysis.xml.core"
 Import-Package: com.google.common.collect,
- com.google.common.hash
+ com.google.common.hash,
+ org.eclipse.jdt.annotation

@@ -21,7 +21,8 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.IntAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.IDataSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.IStringSource;
 
 /**
  * This is a simple {@link AbstractDataModel} implementation for the system call
@@ -33,7 +34,7 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
 
     Map<String, SegmentStoreStatistics> fSegmentStats;
 
-    private final class NameSource implements IDataSource {
+    private final class NameSource implements IStringSource {
         @Override
         public @NonNull Stream<String> getStreamString() {
             Stream<String> stream = fSegmentStats.keySet().stream();
@@ -41,50 +42,47 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
         }
     }
 
-    private final class MinimumSource implements IDataSource {
+    private final class MinimumSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Double> getStreamNumerical() {
-            Stream<Double> stream = fSegmentStats.values().stream()
-                    .map(segment -> segment.getMinSegment().getLength())
-                    .map(num -> num.doubleValue());
+        public @NonNull Stream<Number> getStreamNumber() {
+            Stream<Number> stream = fSegmentStats.values().stream()
+                    .map(segment -> segment.getMinSegment().getLength());
             return checkNotNull(stream);
         }
     }
 
-    private final class MaximumSource implements IDataSource {
+    private final class MaximumSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Double> getStreamNumerical() {
-            Stream<Double> stream = fSegmentStats.values().stream()
-                    .map(segment -> segment.getMaxSegment().getLength())
-                    .map(num -> num.doubleValue());
+        public @NonNull Stream<Number> getStreamNumber() {
+            Stream<Number> stream = fSegmentStats.values().stream()
+                    .map(segment -> segment.getMaxSegment().getLength());
             return checkNotNull(stream);
         }
     }
 
-    private final class AverageSource implements IDataSource {
+    private final class AverageSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Double> getStreamNumerical() {
-            Stream<Double> stream = fSegmentStats.values().stream()
+        public @NonNull Stream<Number> getStreamNumber() {
+            Stream<Number> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getAverage());
             return checkNotNull(stream);
         }
     }
 
-    private final class StandardDeviationSource implements IDataSource {
+    private final class StandardDeviationSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Double> getStreamNumerical() {
-            Stream<Double> stream = fSegmentStats.values().stream()
+        public @NonNull Stream<Number> getStreamNumber() {
+            Stream<Number> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getStdDev());
             return checkNotNull(stream);
         }
     }
 
-    private final class CountSource implements IDataSource {
+    private final class CountSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Double> getStreamNumerical() {
-            Stream<Double> stream = fSegmentStats.values().stream()
-                    .map(segment -> segment.getNbSegments())
-                    .map(num -> num.doubleValue());
+        public @NonNull Stream<Number> getStreamNumber() {
+            Stream<Number> stream = fSegmentStats.values().stream()
+                    .map(segment -> segment.getNbSegments());
             return checkNotNull(stream);
         }
     }
@@ -105,11 +103,11 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
 
         fSegmentStats = segmentStats;
 
-        getDataDescriptors().add(new DataDescriptor(new StringAspect("System Call"), new NameSource()));
-        getDataDescriptors().add(new DataDescriptor(new DurationAspect("Minimum"), new MinimumSource()));
-        getDataDescriptors().add(new DataDescriptor(new DurationAspect("Maximum"), new MaximumSource()));
-        getDataDescriptors().add(new DataDescriptor(new DurationAspect("Average"), new AverageSource()));
-        getDataDescriptors().add(new DataDescriptor(new DurationAspect("Standard Deviation"), new StandardDeviationSource()));
-        getDataDescriptors().add(new DataDescriptor(new IntAspect("Count"), new CountSource()));
+        getDataDescriptors().add(new DataDescriptor(new StringAspect(Messages.SystemCallLatencyDataModel_SystemCall), new NameSource()));
+        getDataDescriptors().add(new DataDescriptor(new DurationAspect(Messages.SystemCallLatencyDataModel_Minimum), new MinimumSource()));
+        getDataDescriptors().add(new DataDescriptor(new DurationAspect(Messages.SystemCallLatencyDataModel_Maximum), new MaximumSource()));
+        getDataDescriptors().add(new DataDescriptor(new DurationAspect(Messages.SystemCallLatencyDataModel_Average), new AverageSource()));
+        getDataDescriptors().add(new DataDescriptor(new DurationAspect(Messages.SystemCallLatencyDataModel_StandardDeviation), new StandardDeviationSource()));
+        getDataDescriptors().add(new DataDescriptor(new IntAspect(Messages.SystemCallLatencyDataModel_Count), new CountSource()));
     }
 }

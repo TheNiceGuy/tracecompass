@@ -23,7 +23,9 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.TimestampAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.IDataSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.IDataSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.IStringSource;
 
 /**
  * This is a simple {@link AbstractDataModel} implementation for any LAMI
@@ -35,7 +37,7 @@ public class LamiResultTableDataModel extends AbstractDataModel {
 
     LamiResultTable fResultTable;
 
-    private final class LamiDataNumberSource implements IDataSource {
+    private final class LamiDataNumberSource implements INumericalSource {
 
         LamiTableEntryAspect fAspect;
 
@@ -44,16 +46,15 @@ public class LamiResultTableDataModel extends AbstractDataModel {
         }
 
         @Override
-        public @NonNull Stream<Double> getStreamNumerical() {
-            Stream<Double> stream = fResultTable.getEntries().stream()
+        public @NonNull Stream<Number> getStreamNumber() {
+            Stream<Number> stream = fResultTable.getEntries().stream()
                     .map(entry -> fAspect.resolveNumber(entry))
-                    .filter(num -> num != null)
-                    .map(num -> num.doubleValue());
+                    .map(num -> checkNotNull(num));
             return checkNotNull(stream);
         }
     }
 
-    private final class LamiDataStringSource implements IDataSource {
+    private final class LamiDataStringSource implements IStringSource {
 
         LamiTableEntryAspect fAspect;
 
