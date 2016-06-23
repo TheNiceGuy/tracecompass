@@ -1,5 +1,4 @@
 /*******************************************************************************
-
  * Copyright (c) 2016 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are

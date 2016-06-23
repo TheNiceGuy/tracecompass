@@ -38,11 +38,6 @@ public class BarChart extends XYChartViewer {
     }
 
     @Override
-    public void dispose() {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
     public ISeries createSerie(String title) {
         IBarSeries series = (IBarSeries) getChart().getSeriesSet().createSeries(SeriesType.BAR, title);
         series.setBarPadding(50);

@@ -43,11 +43,6 @@ public class ScatterChart extends XYChartViewer {
     }
 
     @Override
-    public void dispose() {
-        // TODO Auto-generated method stub
-    }
-
-    @Override
     public ISeries createSerie(String title) {
         ILineSeries series = (ILineSeries) getChart().getSeriesSet().createSeries(SeriesType.LINE, title);
         series.setLineStyle(LineStyle.NONE);

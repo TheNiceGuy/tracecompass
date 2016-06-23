@@ -18,11 +18,20 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
 import org.eclipse.tracecompass.tmf.chart.ui.format.MapFormat;
+import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.PlatformUI;
 import org.swtchart.Chart;
 import org.swtchart.IAxisTick;
 import org.swtchart.ISeries;
@@ -51,6 +60,41 @@ public abstract class XYChartViewer implements IChartViewer {
         public void controlResized(ControlEvent e) {
             // relocate the close button
             fCloseButton.setLocation(fChart.getSize().x-fCloseButton.getSize().x-10, 10);
+        }
+    }
+
+    private class CloseButtonEvent implements SelectionListener {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            dispose();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+        }
+    }
+
+    private class MouseEnterEvent implements Listener {
+        @Override
+        public void handleEvent(Event event) {
+            Control control = (Control) event.widget;
+            Point display = control.toDisplay(event.x, event.y);
+            Point location = getChart().getParent().toControl(display);
+
+            /*
+             * Only set to visible if we are at the right location, in the
+             * right shell.
+             */
+            boolean visible = getChart().getBounds().contains(location) &&
+                    control.getShell().equals(getChart().getShell());
+            fCloseButton.setVisible(visible);
+        }
+    }
+
+    private class MouseExitEvent implements Listener {
+        @Override
+        public void handleEvent(Event event) {
+            fCloseButton.setVisible(false);
         }
     }
 
@@ -151,9 +195,29 @@ public abstract class XYChartViewer implements IChartViewer {
         setSeriesColor();
 
         // create the close button
+        Image close = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ELCL_REMOVE);
         fCloseButton = new Button(fChart, SWT.PUSH);
-        fCloseButton.setSize(20,20);
+        fCloseButton.setSize(30, 30);
         fCloseButton.setLocation(fChart.getSize().x-fCloseButton.getSize().x-10, 10);
+        fCloseButton.setImage(close);
+        fCloseButton.addSelectionListener(new CloseButtonEvent());
+
+        // add listeners for the visibility of the close button
+        Listener mouseEnter = new MouseEnterEvent();
+        Listener mouseExit = new MouseExitEvent();
+        fChart.getDisplay().addFilter(SWT.MouseEnter, mouseEnter);
+        fChart.getDisplay().addFilter(SWT.MouseExit, mouseExit);
+        fChart.addDisposeListener(event -> {
+            fChart.getDisplay().removeFilter(SWT.MouseEnter, mouseEnter);
+            fChart.getDisplay().removeFilter(SWT.MouseExit, mouseExit);
+        });
+    }
+
+    @Override
+    public void dispose() {
+        Composite parent = fChart.getParent();
+        fChart.dispose();
+        parent.layout();
     }
 
     /**
