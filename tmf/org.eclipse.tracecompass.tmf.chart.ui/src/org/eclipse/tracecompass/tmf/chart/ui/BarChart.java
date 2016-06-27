@@ -15,7 +15,8 @@ import java.util.Iterator;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartData;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
 import org.eclipse.tracecompass.internal.tmf.chart.core.source.IStringSource;
 import org.swtchart.IBarSeries;
@@ -36,9 +37,10 @@ public class BarChart extends XYChartViewer {
      *
      * @param parent parent composite
      * @param dataSeries configured data series for the chart
+     * @param model chart model to use
      */
-    public BarChart(Composite parent, DataSeries dataSeries) {
-        super(parent, dataSeries);
+    public BarChart(Composite parent, ChartData dataSeries, ChartModel model) {
+        super(parent, dataSeries, model);
     }
 
     @Override

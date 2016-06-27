@@ -8,39 +8,33 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.tmf.chart.core.module;
 
-import java.util.Collection;
-
 import org.eclipse.jdt.annotation.Nullable;
 
 /**
- * This class contains everthing needed to make a chart.
- * TODO: rename it
+ * This object should contain all the information needed to create a
+ * chart in the GUI, independently of the actual chart implementation.
+ *
+ * TODO: add axis names?
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
-public class DataSeries {
-    private final ChartType fType;
-    private DataDescriptor fXData;
-    private Collection<DataDescriptor> fYData;
-    private boolean fXLogscale;
-    private boolean fYLogscale;
-
+public class ChartModel {
     /**
-     * TODO: rename
+     * Supported types of charts
      */
     public enum ChartType {
         /**
          * Defines a bar chart
          */
-        BAR_CHART(Messages.DataSeries_EnumBarChart),
+        BAR_CHART(Messages.ChartModel_EnumBarChart),
         /**
          * Defines a scatter chart
          */
-        SCATTER_CHART(Messages.DataSeries_EnumScatterChart),
+        SCATTER_CHART(Messages.ChartModel_EnumScatterChart),
         /**
          * Defines a pie chart
          */
-        PIE_CHART(Messages.DataSeries_EnumPieChart);
+        PIE_CHART(Messages.ChartModel_EnumPieChart);
 
         String fName;
 
@@ -70,22 +64,21 @@ public class DataSeries {
         }
     }
 
+    private final ChartType fType;
+    private boolean fXLogscale;
+    private boolean fYLogscale;
+
     /**
      * Constructor.
      *
-     * @param xData data descriptor for the X axis
-     * @param yData data descriptors for the Y axis
-     * @param xLogscale whether X axis is logarithmic
-     * @param yLogscale whether Y axis is logarithmic
      * @param type chart type
+     * @param xlog whether X axis is logarithmic
+     * @param ylog whether Y axis is logarithmic
      */
-    public DataSeries(DataDescriptor xData, Collection<DataDescriptor> yData,
-            boolean xLogscale, boolean yLogscale, ChartType type) {
-        fXData = xData;
-        fYData = yData;
-        fXLogscale = xLogscale;
-        fYLogscale = yLogscale;
+    public ChartModel(ChartType type, boolean xlog, boolean ylog) {
         fType = type;
+        fXLogscale = xlog;
+        fYLogscale = ylog;
     }
 
     /**
@@ -93,20 +86,6 @@ public class DataSeries {
      */
     public ChartType getChartType() {
         return fType;
-    }
-
-    /**
-     * @return data descriptor for the X axis
-     */
-    public DataDescriptor getXData() {
-        return fXData;
-    }
-
-    /**
-     * @return data descriptors for the Y axis
-     */
-    public Collection<DataDescriptor> getYData() {
-        return fYData;
     }
 
     /**

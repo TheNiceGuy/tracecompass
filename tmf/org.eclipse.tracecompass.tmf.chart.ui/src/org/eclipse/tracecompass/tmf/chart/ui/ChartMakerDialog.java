@@ -10,7 +10,6 @@ package org.eclipse.tracecompass.tmf.chart.ui;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -38,9 +37,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.AbstractAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartData;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries.ChartType;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
 /**
@@ -68,7 +67,9 @@ public class ChartMakerDialog extends SelectionDialog {
 
     private int fDataModelIndex;
 
-    private @Nullable DataSeries fDataSeries;
+    private @Nullable ChartData fDataSeries;
+
+    private @Nullable ChartModel fChartModel;
 
     private class ChartTypeSelectedEvent extends SelectionAdapter {
         @Override
@@ -222,8 +223,8 @@ public class ChartMakerDialog extends SelectionDialog {
 
         fComboChartType.setParent(selector);
         fComboChartType.setLayoutData(selectorComboGridData);
-        fComboChartType.add(DataSeries.ChartType.BAR_CHART.toString());
-        fComboChartType.add(DataSeries.ChartType.SCATTER_CHART.toString());
+        fComboChartType.add(ChartModel.ChartType.BAR_CHART.toString());
+        fComboChartType.add(ChartModel.ChartType.SCATTER_CHART.toString());
         fComboChartType.addSelectionListener(new ChartTypeSelectedEvent());
 
         Label selectorLabel = new Label(selector, SWT.NONE);
@@ -293,7 +294,7 @@ public class ChartMakerDialog extends SelectionDialog {
     public void okPressed() {
         java.util.List<DataDescriptor> descriptors = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors();
 
-        ChartType type = ChartType.resolveName(fComboChartType.getText());
+        ChartModel.ChartType type = ChartModel.ChartType.resolveName(fComboChartType.getText());
         if(type == null) {
             return;
         }
@@ -309,10 +310,8 @@ public class ChartMakerDialog extends SelectionDialog {
             }
         }
 
-        fDataSeries = new DataSeries(xAxis, yAxis,
-                fXLogscale.getSelection(),
-                fYLogscale.getSelection(),
-                type);
+        fDataSeries = new ChartData(xAxis, yAxis);
+        fChartModel = new ChartModel(type, fXLogscale.getSelection(), fYLogscale.getSelection());
 
         super.okPressed();
     }
@@ -320,8 +319,15 @@ public class ChartMakerDialog extends SelectionDialog {
     /**
      * @return selected data series
      */
-    public @Nullable DataSeries getDataSeries() {
+    public @Nullable ChartData getDataSeries() {
         return fDataSeries;
+    }
+
+    /**
+     * @return selected chart model
+     */
+    public @Nullable ChartModel getChartModel() {
+        return fChartModel;
     }
 
     private void enableButton() {
@@ -368,14 +374,15 @@ public class ChartMakerDialog extends SelectionDialog {
         java.util.List<String> input = new ArrayList<>();
 
         if(fAspectFilter == null) {
-            input = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors().stream()
-                    .map(descriptor -> descriptor.getAspect().getLabel())
-                    .collect(Collectors.toList());
+            for(DataDescriptor descriptor : AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors()) {
+                input.add(descriptor.getAspect().getLabel());
+            }
         } else {
-            input = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors().stream()
-                    .filter(descriptor -> descriptor.getAspect().getClass() == fAspectFilter.getClass())
-                    .map(descriptor -> descriptor.getAspect().getLabel())
-                    .collect(Collectors.toList());
+            for(DataDescriptor descriptor : AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors()) {
+                if(descriptor.getAspect().getClass() == fAspectFilter.getClass()) {
+                    input.add(descriptor.getAspect().getLabel());
+                }
+            }
         }
 
         fSelectionY.setInput(input);

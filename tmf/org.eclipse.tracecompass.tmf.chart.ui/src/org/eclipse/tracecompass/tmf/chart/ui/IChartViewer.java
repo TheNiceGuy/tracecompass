@@ -14,7 +14,8 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartData;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartModel;
 
 import com.google.common.collect.ImmutableList;
 
@@ -47,19 +48,19 @@ public interface IChartViewer {
      *
      * @param parent parent composite
      * @param series data series to plot
+     * @param model chart model to use
      * @return chart object
      */
-    static IChartViewer createChart(Composite parent, DataSeries series) {
-        switch (series.getChartType()) {
+    static IChartViewer createChart(Composite parent, ChartData series, ChartModel model) {
+        switch (model.getChartType()) {
         case BAR_CHART:
-            return new BarChart(parent, series);
+            return new BarChart(parent, series, model);
         case SCATTER_CHART:
-            return new ScatterChart(parent, series);
+            return new ScatterChart(parent, series, model);
         case PIE_CHART:
             /**
              * TODO
              */
-            return null;
         default:
             return null;
         }

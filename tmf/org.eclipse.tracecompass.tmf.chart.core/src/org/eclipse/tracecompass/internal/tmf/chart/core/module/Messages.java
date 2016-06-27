@@ -18,15 +18,15 @@ public class Messages extends NLS {
     /**
      * Title of a bar chart
      */
-    public static String DataSeries_EnumBarChart;
+    public static String ChartModel_EnumBarChart;
     /**
      * Title of a scatter chart
      */
-    public static String DataSeries_EnumPieChart;
+    public static String ChartModel_EnumPieChart;
     /**
      * Title of a pie chart
      */
-    public static String DataSeries_EnumScatterChart;
+    public static String ChartModel_EnumScatterChart;
 
     static {
         // initialize resource bundle

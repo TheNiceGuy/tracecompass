@@ -29,8 +29,9 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartData;
+import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataSeries;
 import org.eclipse.tracecompass.tmf.chart.ui.format.MapFormat;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
@@ -50,7 +51,8 @@ public abstract class XYChartViewer implements IChartViewer {
 
     private Button fCloseButton;
     private Chart fChart;
-    private DataSeries fSeries;
+    private ChartData fSeries;
+    private ChartModel fModel;
     private BiMap<@Nullable String, Integer> fYMap;
     private BiMap<@Nullable String, Integer> fXMap;
 
@@ -134,10 +136,12 @@ public abstract class XYChartViewer implements IChartViewer {
      *
      * @param parent parent composite
      * @param dataSeries configured data series for the chart
+     * @param model chart model to use
      */
-    public XYChartViewer(Composite parent, DataSeries dataSeries) {
+    public XYChartViewer(Composite parent, ChartData dataSeries, ChartModel model) {
         fChart = new Chart(parent, SWT.NONE);
         fSeries = dataSeries;
+        fModel = model;
         fYMap = checkNotNull(HashBiMap.create());
         fXMap = checkNotNull(HashBiMap.create());
 
@@ -189,8 +193,8 @@ public abstract class XYChartViewer implements IChartViewer {
 
         // configure the chart
         fChart.getAxisSet().adjustRange();
-        fChart.getAxisSet().getXAxis(0).enableLogScale(fSeries.isXLogscale());
-        fChart.getAxisSet().getYAxis(0).enableLogScale(fSeries.isYLogscale());
+        fChart.getAxisSet().getXAxis(0).enableLogScale(fModel.isXLogscale());
+        fChart.getAxisSet().getYAxis(0).enableLogScale(fModel.isYLogscale());
         fChart.addControlListener(new ResizeEvent());
 
         // configure the color of each serie
@@ -254,7 +258,7 @@ public abstract class XYChartViewer implements IChartViewer {
     /**
      * @return plotted data series
      */
-    public DataSeries getSeries() {
+    public ChartData getSeries() {
         return fSeries;
     }
 
