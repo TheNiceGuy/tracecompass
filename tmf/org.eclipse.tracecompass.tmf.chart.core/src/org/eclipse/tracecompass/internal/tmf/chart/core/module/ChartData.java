@@ -8,7 +8,7 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.tmf.chart.core.module;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
  * This class contains everything needed to make a chart.
@@ -16,8 +16,8 @@ import java.util.Collection;
  * @author Gabriel-Andrew Pollo-Guilbert
  */
 public class ChartData {
-    private DataDescriptor fXData;
-    private Collection<DataDescriptor> fYData;
+    private List<DataDescriptor> fXData;
+    private List<DataDescriptor> fYData;
 
     /**
      * Constructor.
@@ -25,7 +25,7 @@ public class ChartData {
      * @param xData data descriptor for the X axis
      * @param yData data descriptors for the Y axis
      */
-    public ChartData(DataDescriptor xData, Collection<DataDescriptor> yData) {
+    public ChartData(List<DataDescriptor> xData, List<DataDescriptor> yData) {
         fXData = xData;
         fYData = yData;
     }
@@ -33,14 +33,14 @@ public class ChartData {
     /**
      * @return data descriptor for the X axis
      */
-    public DataDescriptor getXData() {
+    public List<DataDescriptor> getXData() {
         return fXData;
     }
 
     /**
      * @return data descriptors for the Y axis
      */
-    public Collection<DataDescriptor> getYData() {
+    public List<DataDescriptor> getYData() {
         return fYData;
     }
 }

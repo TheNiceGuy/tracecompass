@@ -9,7 +9,6 @@
 package org.eclipse.tracecompass.tmf.chart.ui;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -44,6 +43,8 @@ import org.eclipse.ui.dialogs.SelectionDialog;
 
 /**
  * This dialog is used to configure series before building a chart.
+ *
+ * TODO: restrict X axis selection
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
@@ -299,9 +300,10 @@ public class ChartMakerDialog extends SelectionDialog {
             return;
         }
 
-        DataDescriptor xAxis = descriptors.get(fSelectionX.getSelectionIndex());
-        Collection<DataDescriptor> yAxis = new ArrayList<>();
+        java.util.List<DataDescriptor> xAxis = new ArrayList<>();
+        java.util.List<DataDescriptor> yAxis = new ArrayList<>();
 
+        xAxis.add(descriptors.get(fSelectionX.getSelectionIndex()));
         for(DataDescriptor descriptor : descriptors) {
             for(Object entry : fSelectionY.getCheckedElements()) {
                 if(descriptor.getAspect().getLabel().equals(entry.toString())) {

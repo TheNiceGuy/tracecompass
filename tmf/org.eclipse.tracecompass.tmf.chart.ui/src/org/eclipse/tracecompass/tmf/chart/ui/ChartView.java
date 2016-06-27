@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartData;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartModel;
+import org.eclipse.tracecompass.provisional.tmf.chart.ui.IChartViewer;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 
 public class ChartView extends TmfView {

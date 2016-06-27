@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartData;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
+import org.eclipse.tracecompass.provisional.tmf.chart.ui.IChartViewer;
 import org.eclipse.tracecompass.tmf.chart.ui.format.MapFormat;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
@@ -170,7 +171,7 @@ public abstract class XYChartViewer implements IChartViewer {
         }
 
         // create a series for each X aspects
-        xData = generateXData(dataSeries.getXData());
+        xData = generateXData(dataSeries.getXData().get(0));
 
         // link each Y series with the unique X serie
         for(ISeries series : seriesList) {
@@ -277,7 +278,7 @@ public abstract class XYChartViewer implements IChartViewer {
     }
 
     private String generateXTitle() {
-        return fSeries.getXData().getAspect().getLabel();
+        return fSeries.getXData().get(0).getAspect().getLabel();
     }
 
     private String generateYTitle() {
