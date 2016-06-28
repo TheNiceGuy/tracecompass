@@ -32,6 +32,8 @@ import com.google.common.collect.Iterators;
  */
 public class BarChart extends XYChartViewer {
 
+    private static final double LOGSCALE_EPSILON_FACTOR = 100.0;
+
     /**
      * Constructor.
      *

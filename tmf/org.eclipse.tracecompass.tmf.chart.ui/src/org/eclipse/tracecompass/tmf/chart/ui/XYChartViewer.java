@@ -20,9 +20,11 @@ import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -39,6 +41,7 @@ import org.eclipse.ui.PlatformUI;
 import org.swtchart.Chart;
 import org.swtchart.IAxisTick;
 import org.swtchart.ISeries;
+import org.swtchart.ITitle;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -49,8 +52,16 @@ import com.google.common.collect.HashBiMap;
  * @author Gabriel-Andrew Pollo-Guilbert
  */
 public abstract class XYChartViewer implements IChartViewer {
+    /**
+     * Ellipsis character
+     */
+    protected static final String ELLIPSIS = "…"; //$NON-NLS-1$
 
+    private Composite fParent;
     private Button fCloseButton;
+    private String fChartTitle;
+    private String fXTitle;
+    private String fYTitle;
     private Chart fChart;
     private ChartData fSeries;
     private ChartModel fModel;
@@ -63,7 +74,10 @@ public abstract class XYChartViewer implements IChartViewer {
 
         @Override
         public void controlResized(ControlEvent e) {
-            // relocate the close button
+            /* refresh titles */
+            refreshDisplayTitles();
+
+            /* relocate the close button */
             fCloseButton.setLocation(fChart.getSize().x-fCloseButton.getSize().x-10, 10);
         }
     }
@@ -140,6 +154,8 @@ public abstract class XYChartViewer implements IChartViewer {
      * @param model chart model to use
      */
     public XYChartViewer(Composite parent, ChartData dataSeries, ChartModel model) {
+        fParent = parent;
+        fChartTitle = null;
         fChart = new Chart(parent, SWT.NONE);
         fSeries = dataSeries;
         fModel = model;
@@ -149,59 +165,58 @@ public abstract class XYChartViewer implements IChartViewer {
         double[] yData = {0};
         double[] xData;
 
-        // title and axis names
-        fChart.getTitle().setText(generateTitle());
-        fChart.getLegend().setPosition(SWT.TOP);
-        fChart.getAxisSet().getXAxis(0).getTitle().setText(generateXTitle());
-        fChart.getAxisSet().getYAxis(0).getTitle().setText(generateYTitle());
+        /* set titles */
+        generateXTitle();
+        generateYTitle();
 
-        // rotate X axis ticks
-        fChart.getAxisSet().getXAxis(0).getTick().setTickLabelAngle(90);
-
-        // create a series for each Y aspects
+        /* create a series for each Y aspects */
         List<ISeries> seriesList = new ArrayList<>();
         for(DataDescriptor descriptor : dataSeries.getYData()) {
             yData = generateYData(descriptor);
 
-            // add the serie into the list
+            /* add the serie into the list */
             ISeries series = createSerie(descriptor.getAspect().getLabel());
 
             series.setYSeries(yData);
             seriesList.add(series);
         }
 
-        // create a series for each X aspects
+        /* create a series for each X aspects */
         xData = generateXData(dataSeries.getXData().get(0));
 
-        // link each Y series with the unique X serie
+        /* link each Y series with the unique X serie */
         for(ISeries series : seriesList) {
             series.setXSeries(xData);
         }
 
-        // format X ticks
+        /* format X ticks */
         if(!fXMap.isEmpty()) {
             IAxisTick xTick = fChart.getAxisSet().getXAxis(0).getTick();
             xTick.setFormat(new MapFormat(checkNotNull(fXMap)));
             updateTickMark(checkNotNull(fXMap), xTick, fChart.getPlotArea().getSize().x);
         }
 
-        // format Y ticks
+        /* format Y ticks */
         if(!fYMap.isEmpty()) {
             IAxisTick yTick = fChart.getAxisSet().getYAxis(0).getTick();
             yTick.setFormat(new MapFormat(checkNotNull(fYMap)));
             updateTickMark(checkNotNull(fYMap), yTick, fChart.getPlotArea().getSize().y);
         }
 
-        // configure the chart
-        fChart.getAxisSet().adjustRange();
-        fChart.getAxisSet().getXAxis(0).enableLogScale(fModel.isXLogscale());
-        fChart.getAxisSet().getYAxis(0).enableLogScale(fModel.isYLogscale());
-        fChart.addControlListener(new ResizeEvent());
+        /* Set all titles and labels font color to black */
+        fChart.getTitle().setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));
+        fChart.getAxisSet().getXAxis(0).getTitle().setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));
+        fChart.getAxisSet().getYAxis(0).getTitle().setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));
+        fChart.getAxisSet().getXAxis(0).getTick().setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));
+        fChart.getAxisSet().getYAxis(0).getTick().setForeground(Display.getDefault().getSystemColor(SWT.COLOR_BLACK));
 
-        // configure the color of each serie
-        setSeriesColor();
+        /* Set X label 90 degrees */
+        fChart.getAxisSet().getXAxis(0).getTick().setTickLabelAngle(90);
 
-        // create the close button
+        /* Refresh the titles to fit the current chart size */
+        refreshDisplayTitles();
+
+        /* create the close button */
         Image close = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ELCL_REMOVE);
         fCloseButton = new Button(fChart, SWT.PUSH);
         fCloseButton.setSize(30, 30);
@@ -209,7 +224,7 @@ public abstract class XYChartViewer implements IChartViewer {
         fCloseButton.setImage(close);
         fCloseButton.addSelectionListener(new CloseButtonEvent());
 
-        // add listeners for the visibility of the close button
+        /* add listeners for the visibility of the close button */
         Listener mouseEnter = new MouseEnterEvent();
         Listener mouseExit = new MouseExitEvent();
         fChart.getDisplay().addFilter(SWT.MouseEnter, mouseEnter);
@@ -219,20 +234,20 @@ public abstract class XYChartViewer implements IChartViewer {
             fChart.getDisplay().removeFilter(SWT.MouseExit, mouseExit);
         });
 
-        // set color
-        Color black = Display.getDefault().getSystemColor(SWT.COLOR_BLACK);
-        fChart.getTitle().setForeground(black);
-        fChart.getAxisSet().getXAxis(0).getTitle().setForeground(black);
-        fChart.getAxisSet().getXAxis(0).getTick().setForeground(black);
-        fChart.getAxisSet().getYAxis(0).getTitle().setForeground(black);
-        fChart.getAxisSet().getYAxis(0).getTick().setForeground(black);
+        /* configure the chart */
+        fChart.getAxisSet().adjustRange();
+        fChart.getAxisSet().getXAxis(0).enableLogScale(fModel.isXLogscale());
+        fChart.getAxisSet().getYAxis(0).enableLogScale(fModel.isYLogscale());
+        fChart.addControlListener(new ResizeEvent());
+
+        /* configure the color of each serie */
+        setSeriesColor();
     }
 
     @Override
     public void dispose() {
-        Composite parent = fChart.getParent();
         fChart.dispose();
-        parent.layout();
+        fParent.layout();
     }
 
     /**
@@ -273,22 +288,154 @@ public abstract class XYChartViewer implements IChartViewer {
         stream.distinct().forEach(str -> map.put(str, map.size()));
     }
 
-    private String generateTitle() {
-        return generateXTitle() + " vs. " + generateYTitle();
-    }
-
-    private String generateXTitle() {
-        return fSeries.getXData().get(0).getAspect().getLabel();
-    }
-
-    private String generateYTitle() {
-        DataDescriptor descriptor = fSeries.getYData().iterator().next();
-
-        if(fSeries.getYData().size() == 1) {
-            return descriptor.getAspect().getLabel();
+    private String getTitle() {
+        if(fChartTitle == null) {
+            return fXTitle + " vs. " + fYTitle; //$NON-NLS-1$
         }
 
-        return "TODO";
+        return fChartTitle;
+    }
+
+    private void generateXTitle() {
+        if(fSeries.getXData().size() == 1) {
+            /*
+             * There is only 1 series in the chart, we will use its name as the
+             * X axis.
+             */
+            fXTitle = fSeries.getXData().get(0).getAspect().getLabel();
+        } else {
+            /*
+             * There are multiple series in the chart, if they all share the same
+             * units, display that.
+             */
+            long nbDiffAspectName = fSeries.getXData().stream()
+                    .map(descriptor -> descriptor.getAspect().getName())
+                    .distinct()
+                    .count();
+
+            long nbDiffAspectsUnits = fSeries.getXData().stream()
+                    .map(descriptor -> descriptor.getAspect().getUnits())
+                    .distinct()
+                    .count();
+
+            fXTitle = "Value"; //$NON-NLS-1$
+            if(nbDiffAspectName == 1) {
+                fXTitle = fSeries.getXData().get(0).getAspect().getName();
+            }
+
+            String units = null;
+            if(nbDiffAspectsUnits == 1) {
+                units = fSeries.getXData().get(0).getAspect().getUnits();
+            }
+
+            if(units == null) {
+                fXTitle = fXTitle + ' ' + '(' + units + ')';
+            }
+        }
+    }
+
+    private void generateYTitle() {
+        if(fSeries.getYData().size() == 1) {
+            /*
+             * There is only 1 series in the chart, we will use its name as the
+             * Y axis (and hide the legend).
+             */
+            fYTitle = fSeries.getYData().get(0).getAspect().getLabel();
+
+            /* Hide the legend */
+            fChart.getLegend().setVisible(false);
+        } else {
+            /*
+             * There are multiple series in the chart, if they all share the same
+             * units, display that.
+             */
+            long nbDiffAspectName = fSeries.getYData().stream()
+                    .map(descriptor -> descriptor.getAspect().getName())
+                    .distinct()
+                    .count();
+
+            long nbDiffAspectsUnits = fSeries.getYData().stream()
+                    .map(descriptor -> descriptor.getAspect().getUnits())
+                    .distinct()
+                    .count();
+
+            fYTitle = "Value"; //$NON-NLS-1$
+            if(nbDiffAspectName == 1) {
+                fYTitle = fSeries.getXData().get(0).getAspect().getName();
+            }
+
+            String units = null;
+            if(nbDiffAspectsUnits == 1) {
+                units = fSeries.getXData().get(0).getAspect().getUnits();
+            }
+
+            if(units != null) {
+                fYTitle = fYTitle + ' ' + '(' + units + ')';
+            }
+
+            /* Put legend at the bottom */
+            fChart.getLegend().setPosition(SWT.BOTTOM);
+        }
+    }
+
+    /**
+     * Set the ITitle object text to a substring of canonicalTitle that when
+     * rendered in the chart will fit maxPixelLength.
+     */
+    private void refreshDisplayTitle(ITitle title, String canonicalTitle, int maxPixelLength) {
+        if (title.isVisible()) {
+            String newTitle = canonicalTitle;
+
+            /* Get the title font */
+            Font font = title.getFont();
+
+            GC gc = new GC(fParent);
+            gc.setFont(font);
+
+            /* Get the length and height of the canonical title in pixels */
+            Point pixels = gc.stringExtent(canonicalTitle);
+
+            /*
+             * If the title is too long, generate a shortened version based on the
+             * average character width of the current font.
+             */
+            if (pixels.x > maxPixelLength) {
+                int charwidth = gc.getFontMetrics().getAverageCharWidth();
+
+                int minimum = 3;
+
+                int strLen = ((maxPixelLength / charwidth) - minimum);
+
+                if (strLen > minimum) {
+                    newTitle = canonicalTitle.substring(0, strLen) + ELLIPSIS;
+                } else {
+                    newTitle = ELLIPSIS;
+                }
+            }
+
+            title.setText(newTitle);
+
+            /* Cleanup */
+            gc.dispose();
+        }
+    }
+
+    /**
+     * Refresh the Chart, XAxis and YAxis titles to fit the current
+     * chart size.
+     */
+    private void refreshDisplayTitles() {
+        Rectangle chartRect = fChart.getClientArea();
+        Rectangle plotRect = fChart.getPlotArea().getClientArea();
+
+        ITitle chartTitle = checkNotNull(fChart.getTitle());
+        refreshDisplayTitle(chartTitle, getTitle(), chartRect.width);
+
+        ITitle xTitle = checkNotNull(fChart.getAxisSet().getXAxis(0).getTitle());
+        refreshDisplayTitle(xTitle, fXTitle, plotRect.width);
+
+        ITitle yTitle = checkNotNull(fChart.getAxisSet().getYAxis(0).getTitle());
+        refreshDisplayTitle(yTitle, fYTitle, plotRect.height);
     }
 
     private static void updateTickMark(BiMap<@Nullable String, Integer> map, IAxisTick tick, int availableLenghtPixel) {

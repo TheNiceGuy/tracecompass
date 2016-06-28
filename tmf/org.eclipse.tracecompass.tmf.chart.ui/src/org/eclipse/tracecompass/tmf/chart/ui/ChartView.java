@@ -18,6 +18,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartData;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartModel;
+//import org.eclipse.tracecompass.provisional.tmf.chart.ui.BarChartViewer;
 import org.eclipse.tracecompass.provisional.tmf.chart.ui.IChartViewer;
 import org.eclipse.tracecompass.tmf.ui.views.TmfView;
 
@@ -43,13 +44,14 @@ public class ChartView extends TmfView {
                 ChartMakerDialog maker = new ChartMakerDialog(parent.getShell());
 
                 maker.open();
-                ChartData dataSeries = maker.getDataSeries();
-                ChartModel chartmodel = maker.getChartModel();
-                if(dataSeries == null || chartmodel == null) {
+                ChartData chartData = maker.getDataSeries();
+                ChartModel chartModel = maker.getChartModel();
+                if(chartData == null || chartModel == null) {
                     return;
                 }
 
-                IChartViewer.createChart(sashForm, dataSeries, chartmodel);
+                //BarChartViewer bar = new BarChartViewer(sashForm, chartData, chartModel);
+                IChartViewer.createChart(sashForm, chartData, chartModel);
             }
 
             @Override
