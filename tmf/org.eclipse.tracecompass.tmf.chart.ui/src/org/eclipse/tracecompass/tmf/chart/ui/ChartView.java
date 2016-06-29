@@ -34,6 +34,26 @@ public class ChartView extends TmfView {
 
     @Override
     public void createPartControl(Composite parent) {
+//        // create a chart
+//        Chart chart = new Chart(parent, SWT.NONE);
+//
+//        // set titles
+//        chart.getTitle().setText("Bar Chart Example");
+//        chart.getAxisSet().getXAxis(0).getTitle().setText("Data Points");
+//        chart.getAxisSet().getYAxis(0).getTitle().setText("Amplitude");
+//
+//        // create bar series
+//        IBarSeries barSeries = (IBarSeries) chart.getSeriesSet()
+//            .createSeries(SeriesType.BAR, "bar series");
+//
+//        double[] ySeries = {1,6,2,4,6};
+//        double[] xSeries = {10,20,30,40,20};
+//        barSeries.setYSeries(ySeries);
+//        barSeries.setXSeries(xSeries);
+//
+//        // adjust the axis range
+//        chart.getAxisSet().adjustRange();
+
         SashForm sashForm = new SashForm(parent, SWT.HORIZONTAL);
 
         Button button = new Button(sashForm, SWT.PUSH);

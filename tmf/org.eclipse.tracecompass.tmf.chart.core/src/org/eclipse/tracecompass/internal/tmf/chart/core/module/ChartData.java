@@ -43,4 +43,24 @@ public class ChartData {
     public List<DataDescriptor> getYData() {
         return fYData;
     }
+
+    /**
+     * @return number of unique aspect for the X axis
+     */
+    public Long countDiffXData() {
+        return fXData.stream()
+                .map(descriptor -> descriptor.getAspect().getClass())
+                .distinct()
+                .count();
+    }
+
+    /**
+     * @return number of unique aspect for the Y axis
+     */
+    public Long countDiffYData() {
+        return fXData.stream()
+                .map(descriptor -> descriptor.getAspect().getClass())
+                .distinct()
+                .count();
+    }
 }

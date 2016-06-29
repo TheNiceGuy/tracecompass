@@ -39,6 +39,7 @@ public abstract class AbstractAspect {
         if (getUnits() == null) {
             return getName();
         }
+
         return (getName() + " (" + getUnits() + ')'); //$NON-NLS-1$
     }
 

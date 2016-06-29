@@ -303,11 +303,12 @@ public class ChartMakerDialog extends SelectionDialog {
         java.util.List<DataDescriptor> xAxis = new ArrayList<>();
         java.util.List<DataDescriptor> yAxis = new ArrayList<>();
 
-        xAxis.add(descriptors.get(fSelectionX.getSelectionIndex()));
+
         for(DataDescriptor descriptor : descriptors) {
             for(Object entry : fSelectionY.getCheckedElements()) {
                 if(descriptor.getAspect().getLabel().equals(entry.toString())) {
                     yAxis.add(descriptor);
+                    xAxis.add(descriptors.get(fSelectionX.getSelectionIndex()));
                 }
             }
         }
