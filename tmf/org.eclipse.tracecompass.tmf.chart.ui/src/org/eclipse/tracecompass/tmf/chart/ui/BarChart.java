@@ -11,11 +11,17 @@ package org.eclipse.tracecompass.tmf.chart.ui;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartData;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartModel;
@@ -24,6 +30,7 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
 import org.eclipse.tracecompass.internal.tmf.chart.core.source.IStringSource;
 import org.eclipse.tracecompass.tmf.chart.ui.format.ChartRange;
 import org.swtchart.IAxis;
+import org.swtchart.IAxisTick;
 import org.swtchart.IBarSeries;
 import org.swtchart.ISeries;
 import org.swtchart.ISeries.SeriesType;
@@ -41,11 +48,14 @@ public class BarChart extends XYChartViewer {
 
     private static final double LOGSCALE_EPSILON_FACTOR = 100.0;
 
-    private ChartRange fYInternalRange;
-    private ChartRange fYExternalRange;
-
     private double fLogScaleEpsilon = ZERO_DOUBLE;
+    private double fMin;
     private double fMax;
+
+    /**
+     * Map reprensenting categories on the X axis
+     */
+    private String[] fCategories;
 
     /**
      * Constructor.
@@ -57,8 +67,8 @@ public class BarChart extends XYChartViewer {
     public BarChart(Composite parent, ChartData dataSeries, ChartModel model) {
         super(parent, dataSeries, model);
 
-        fYInternalRange = new ChartRange(checkNotNull(BigDecimal.ZERO), checkNotNull(BigDecimal.ONE));
-        fYExternalRange = getRange(dataSeries.getYData(), true);
+        /* Enable categories */
+        getChart().getAxisSet().getXAxis(0).enableCategory(true);
 
         /*
          * Log scale magic course 101:
@@ -83,30 +93,33 @@ public class BarChart extends XYChartViewer {
 
                 value = source.getStreamNumber()
                         .map(num -> getInternalDoubleValue(num, fYInternalRange, fYExternalRange))
-                        .max(Double::compare)
-                        .get()
-                        .doubleValue();
-                max = Math.max(max, value);
-
-                value = source.getStreamNumber()
-                        .map(num -> getInternalDoubleValue(num, fYInternalRange, fYExternalRange))
+                        .filter(num -> num > 0)
                         .min(Double::compare)
                         .get()
                         .doubleValue();
                 min = Math.min(min, value);
+
+                value = source.getStreamNumber()
+                        .map(num -> getInternalDoubleValue(num, fYInternalRange, fYExternalRange))
+                        .filter(num -> num > 0)
+                        .max(Double::compare)
+                        .get()
+                        .doubleValue();
+                max = Math.max(max, value);
             }
+
+            if (min == Double.MAX_VALUE) {
+                return;
+            }
+
+            /* Calculate epsilon */
+            double delta = max - min;
+            fLogScaleEpsilon = min - ((min * delta) / (LOGSCALE_EPSILON_FACTOR * max));
+
+            /**TODO*/
+            fMin = min;
+            fMax = max;
         }
-
-        if (min == Double.MAX_VALUE) {
-            return;
-        }
-
-        /* Calculate epsilon */
-        double delta = max - min;
-        fLogScaleEpsilon = min - ((min * delta) / (LOGSCALE_EPSILON_FACTOR * max));
-
-        /**TODO*/
-        fMax = max;
     }
 
     @Override
@@ -138,11 +151,24 @@ public class BarChart extends XYChartViewer {
         if (getModel().isYLogscale() && fLogScaleEpsilon != fMax) {
             getChart().getAxisSet().getYAxis(0).setRange(new Range(fLogScaleEpsilon, fMax));
         }
+
+        /* Once the chart is filled, refresh the axis labels */
+        refreshDisplayLabels();
     }
 
     @Override
     public void assertData() {
         super.assertData();
+
+        /* Make sure the X axis is not continuous */
+        if(getData().getXData().get(0).getAspect().isContinuous()) {
+            throw new IllegalArgumentException("Bar chart X axis cannot be numerical."); //$NON-NLS-1$
+        }
+
+        /* Make sure the Y axis is continuous */
+        if(!getData().getYData().get(0).getAspect().isContinuous()) {
+            throw new IllegalArgumentException("Bar chart Y axis must be numerical."); //$NON-NLS-1$
+        }
 
         /* Make sure there is only one X axis */
         if(getData().countDiffXData() > 1) {
@@ -151,14 +177,32 @@ public class BarChart extends XYChartViewer {
     }
 
     @Override
+    public void computeRanges() {
+        fXExternalRange = new ChartRange(checkNotNull(BigDecimal.ZERO), checkNotNull(BigDecimal.ONE));
+
+        if(getData().getYData().get(0).getAspect().isContinuous()) {
+            fYExternalRange = getRange(getData().getYData(), true);
+        } else {
+            fYExternalRange = new ChartRange(checkNotNull(BigDecimal.ZERO), checkNotNull(BigDecimal.ONE));
+        }
+    }
+
+    @Override
     public void createSeries() {
         ISeriesSet set = getChart().getSeriesSet();
 
-        for(DataDescriptor descriptor : getData().getYData()) {
-            String title = descriptor.getAspect().getLabel();
+        Iterator<DataDescriptor> iteratorX = getData().getXData().iterator();
+        Iterator<DataDescriptor> iteratorY = getData().getYData().iterator();
 
+        while(iteratorX.hasNext()) {
+            DataDescriptor descriptor = iteratorY.next();
+
+            String title = descriptor.getAspect().getLabel();
             IBarSeries series = (IBarSeries) set.createSeries(SeriesType.BAR, title);
             series.setBarPadding(50);
+
+            fXSeries.put(iteratorX.next(), series);
+            fYSeries.put(descriptor, series);
         }
     }
 
@@ -172,63 +216,109 @@ public class BarChart extends XYChartViewer {
     }
 
     @Override
-    public List<double[]> generateXData(List<DataDescriptor> descriptors) {
-        double[] data;
-
-        ArrayList<double[]> dataList = new ArrayList<>();
+    public void generateXData(List<DataDescriptor> descriptors) {
         DataDescriptor descriptor = descriptors.get(0);
-        if(descriptor.getAspect().isContinuous()) {
-            /* generate unique position for each number */
-            generateLabelMap(((INumericalSource) descriptor.getSource()).getStreamNumber()
-                    .map(num -> num.toString()), getXMap());
 
-            data = ((INumericalSource) descriptor.getSource()).getStreamNumber()
-                    .map(num -> getXMap().get(num.toString()))
-                    .mapToDouble(num -> num.doubleValue())
-                    .toArray();
-        } else {
-            /* generate unique position for each string */
-            generateLabelMap(((IStringSource) descriptor.getSource()).getStreamString(), getXMap());
-
-            data = ((IStringSource) descriptor.getSource()).getStreamString()
-                    .map(str -> getXMap().get(str))
-                    .mapToDouble(num -> (double) num)
-                    .toArray();
-        }
-
-        /* each series has the same X data */
-        for(int i = 0; i < descriptors.size(); i++) {
-            dataList.add(data);
-        }
-
-        return dataList;
+        /* Generate map of categories and integers at the same time */
+        fCategories = ((IStringSource) descriptor.getSource()).getStreamString().toArray(size -> new String[size]);
     }
 
     @Override
-    public List<double[]> generateYData(List<DataDescriptor> descriptors) {
+    public void generateYData(List<DataDescriptor> descriptors) {
         double[] data;
 
-        ArrayList<double[]> dataList = new ArrayList<>();
         for(DataDescriptor descriptor : descriptors) {
-            if(descriptor.getAspect().isContinuous()) {
-                /* generate data if the aspect is continuous */
-                data = ((INumericalSource) descriptor.getSource()).getStreamNumber()
-                        .mapToDouble(num -> num.doubleValue())
-                        .toArray();
-            } else {
-                /* generate unique position for each string */
-                generateLabelMap(((IStringSource) descriptor.getSource()).getStreamString(), getYMap());
+            /* Generate data if the aspect is continuous */
+            Double[] temp = ((INumericalSource) descriptor.getSource()).getStreamNumber()
+                    .map(num -> new Double(num.doubleValue()))
+                    .toArray(size -> new Double[size]);
 
-                data = ((IStringSource) descriptor.getSource()).getStreamString()
-                        .map(str -> getYMap().get(str))
-                        .map(num -> checkNotNull(num))
-                        .mapToDouble(num -> (double) num)
-                        .toArray();
+            data = new double[temp.length];
+            for(int j = 0; j < temp.length; j++) {
+                /* Null value for y is the same as zero */
+                if(temp[j] == null) {
+                    temp[j] = ZERO_DOUBLE;
+                } else {
+                    temp[j] = getInternalDoubleValue(temp[j], fYInternalRange, fYExternalRange);
+                }
+
+                /*
+                 * Less or equal to 0 values can't be plotted on a log
+                 * scale. We map them to the mean of the >=0 minimal value
+                 * and the calculated log scale magic epsilon.
+                 */
+                if(getModel().isYLogscale() && temp[j] <= ZERO_DOUBLE) {
+                    temp[j] = (fMin + fLogScaleEpsilon)/2.0;
+                }
+
+                data[j] = temp[j];
             }
 
-            dataList.add(data);
+            checkNotNull(fYSeries.get(descriptor)).setYSeries(data);
+        }
+    }
+
+    @Override
+    public void configureAxis() {
+        /* Format X axis */
+        Stream.of(getChart().getAxisSet().getXAxes()).forEach(cat -> cat.enableCategory(true));
+
+        /* Format Y axis */
+        for(IAxis axis : getChart().getAxisSet().getYAxes()) {
+            IAxisTick tick = axis.getTick();
+            tick.setFormat(getContinuousAxisFormatter(getData().getYData(), fXExternalRange, fXExternalRange));
+        }
+    }
+
+    @Override
+    protected void refreshDisplayLabels() {
+        /* Only if we have at least 1 category */
+        if (fCategories.length == 0) {
+            return;
         }
 
-        return dataList;
+        /* Only refresh if labels are visible */
+        IAxis xAxis = getChart().getAxisSet().getXAxis(0);
+        if (!xAxis.getTick().isVisible() || !xAxis.isCategoryEnabled()) {
+            return;
+        }
+
+        /*
+         * Shorten all the labels to 5 characters plus "…" when the longest
+         * label length is more than 50% of the chart height.
+         */
+        Rectangle rect = getChart().getClientArea();
+        int lengthLimit = (int) (rect.height * 0.40);
+
+        GC gc = new GC(getParent());
+        gc.setFont(xAxis.getTick().getFont());
+
+        /* Find the longest category string */
+        String longestString = Arrays.stream(fCategories).max(Comparator.comparingInt(String::length)).orElse(fCategories[0]);
+
+        /* Get the length and height of the longest label in pixels */
+        Point pixels = gc.stringExtent(longestString);
+
+        /* Completely arbitrary */
+        int cutLen = 5;
+
+        String[] displayCategories = new String[fCategories.length];
+        if (pixels.x > lengthLimit) {
+            /* We have to cut down some strings */
+            for (int i = 0; i < fCategories.length; i++) {
+                if (fCategories[i].length() > cutLen) {
+                    displayCategories[i] = fCategories[i].substring(0, cutLen) + ELLIPSIS;
+                } else {
+                    displayCategories[i] = fCategories[i];
+                }
+            }
+        } else {
+            /* All strings should fit */
+            displayCategories = Arrays.copyOf(fCategories, fCategories.length);
+        }
+        xAxis.setCategorySeries(displayCategories);
+
+        /* Cleanup */
+        gc.dispose();
     }
 }

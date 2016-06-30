@@ -12,10 +12,13 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.math.BigDecimal;
 import java.text.Format;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
@@ -43,16 +46,14 @@ import org.eclipse.tracecompass.provisional.tmf.chart.ui.IChartViewer;
 import org.eclipse.tracecompass.tmf.chart.ui.format.ChartDecimalUnitFormat;
 import org.eclipse.tracecompass.tmf.chart.ui.format.ChartRange;
 import org.eclipse.tracecompass.tmf.chart.ui.format.ChartTimeStampFormat;
-import org.eclipse.tracecompass.tmf.chart.ui.format.MapFormat;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.swtchart.Chart;
-import org.swtchart.IAxis;
 import org.swtchart.IAxisTick;
+import org.swtchart.ISeries;
 import org.swtchart.ITitle;
 
 import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 
 /**
  * Abstract class for XY charts.
@@ -113,8 +114,15 @@ public abstract class XYChartViewer implements IChartViewer {
     private Chart fChart;
     private ChartData fData;
     private ChartModel fModel;
-    private BiMap<@Nullable String, Integer> fYMap;
-    private BiMap<@Nullable String, Integer> fXMap;
+    protected Map<@NonNull DataDescriptor, @NonNull ISeries> fXSeries;
+    protected Map<@NonNull DataDescriptor, @NonNull ISeries> fYSeries;
+
+    /* Use a scale from 0 to 1 internally for both axes */
+    protected ChartRange fXInternalRange = new ChartRange(checkNotNull(BigDecimal.ZERO), checkNotNull(BigDecimal.ONE));
+    protected ChartRange fYInternalRange = new ChartRange(checkNotNull(BigDecimal.ZERO), checkNotNull(BigDecimal.ONE));
+
+    protected @Nullable ChartRange fXExternalRange = null;
+    protected @Nullable ChartRange fYExternalRange = null;
 
     private class ResizeEvent implements ControlListener {
         @Override
@@ -124,6 +132,9 @@ public abstract class XYChartViewer implements IChartViewer {
         public void controlResized(ControlEvent e) {
             /* refresh titles */
             refreshDisplayTitles();
+
+            /* Refresh the Axis labels to fit the current chart size */
+            refreshDisplayLabels();
 
             /* relocate the close button */
             fCloseButton.setLocation(fChart.getSize().x-fCloseButton.getSize().x-5, 5);
@@ -211,6 +222,8 @@ public abstract class XYChartViewer implements IChartViewer {
         }
     }
 
+    protected abstract void computeRanges();
+
     protected abstract void createSeries();
 
     /**
@@ -218,21 +231,13 @@ public abstract class XYChartViewer implements IChartViewer {
      */
     protected abstract void setSeriesColor();
 
-    /**
-     * This method generates Y data from a data descriptor.
-     *
-     * @param descriptors descriptor to generate data from
-     * @return list of data for the Y axis
-     */
-    protected abstract List<double[]> generateYData(List<DataDescriptor> descriptors);
+    protected abstract void generateYData(List<DataDescriptor> descriptors);
 
-    /**
-     * This method generates X data from a data descriptor.
-     *
-     * @param descriptors descriptor to generate data from
-     * @return list of data for the X axis
-     */
-    protected abstract List<double[]> generateXData(List<DataDescriptor> descriptors);
+    protected abstract void generateXData(List<DataDescriptor> descriptors);
+
+    protected abstract void configureAxis();
+
+    protected abstract void refreshDisplayLabels();
 
     /**
      * Constructor.
@@ -248,10 +253,14 @@ public abstract class XYChartViewer implements IChartViewer {
 
         assertData();
 
+        fXSeries = new HashMap<>();
+        fYSeries = new HashMap<>();
+
         fChartTitle = null;
         fChart = new Chart(parent, SWT.NONE);
-        fYMap = checkNotNull(HashBiMap.create());
-        fXMap = checkNotNull(HashBiMap.create());
+
+        /* Compute ranges */
+        computeRanges();
 
         /* Generate titles */
         generateXTitle();
@@ -278,7 +287,7 @@ public abstract class XYChartViewer implements IChartViewer {
         fCloseButton.setImage(close);
         fCloseButton.addSelectionListener(new CloseButtonEvent());
 
-        /* add listeners for the visibility of the close button */
+        /* add listeners for the visibility of the close button and resizing */
         Listener mouseEnter = new MouseEnterEvent();
         Listener mouseExit = new MouseExitEvent();
         fChart.getDisplay().addFilter(SWT.MouseEnter, mouseEnter);
@@ -287,49 +296,49 @@ public abstract class XYChartViewer implements IChartViewer {
             fChart.getDisplay().removeFilter(SWT.MouseEnter, mouseEnter);
             fChart.getDisplay().removeFilter(SWT.MouseExit, mouseExit);
         });
-
-//        /* configure the chart */
-//        fChart.getAxisSet().adjustRange();
-//        fChart.addControlListener(new ResizeEvent());
+        fChart.addControlListener(new ResizeEvent());
     }
 
-    protected void populate() {
+    public static void printRange(ChartRange range) {
+        System.out.println(range.getMinimum() + " " + range.getMaximum());
+    }
+
+    public void populate() {
+        printRange(fXInternalRange);
+        printRange(fYInternalRange);
+        printRange(fXExternalRange);
+        printRange(fYExternalRange);
+
         /* Create series */
         createSeries();
         setSeriesColor();
 
         /* Generate data series */
-        List<double[]> xData = generateXData(fData.getXData());
-        List<double[]> yData = generateYData(fData.getYData());
-
-        for(int i = 0; i < fChart.getSeriesSet().getSeries().length; i++) {
-            fChart.getSeriesSet().getSeries()[i].setXSeries(xData.get(i));
-            fChart.getSeriesSet().getSeries()[i].setYSeries(yData.get(i));
-        }
+        generateXData(fData.getXData());
+        generateYData(fData.getYData());
 
         Stream.of(getChart().getAxisSet().getYAxes()).forEach(axis -> axis.enableLogScale(getModel().isXLogscale()));
         Stream.of(getChart().getAxisSet().getYAxes()).forEach(axis -> axis.enableLogScale(getModel().isYLogscale()));
 
-        /* Format X ticks */
-        if(!fXMap.isEmpty()) {
-            for(IAxis axis : fChart.getAxisSet().getAxes()) {
-                IAxisTick xTick = axis.getTick();
-                xTick.setFormat(new MapFormat(checkNotNull(fXMap)));
-                updateTickMark(checkNotNull(fXMap), xTick, fChart.getPlotArea().getSize().x);
-            }
-        }
+        configureAxis();
 
-        /* Format Y ticks */
-        if(!fYMap.isEmpty()) {
-            for(IAxis axis : fChart.getAxisSet().getAxes()) {
-                IAxisTick yTick = axis.getTick();
-                yTick.setFormat(new MapFormat(checkNotNull(fYMap)));
-                updateTickMark(checkNotNull(fYMap), yTick, fChart.getPlotArea().getSize().y);
-            }
-        }
-
-        /* Adjust the chart range */
-      //  getChart().getAxisSet().adjustRange();
+//        /* Format X ticks */
+//        if(!fXMap.isEmpty()) {
+//            for(IAxis axis : fChart.getAxisSet().getXAxes()) {
+//                IAxisTick xTick = axis.getTick();
+//                xTick.setFormat(new MapFormat(checkNotNull(fXMap)));
+//                updateTickMark(checkNotNull(fXMap), xTick, fChart.getPlotArea().getSize().x);
+//            }
+//        }
+//
+//        /* Format Y ticks */
+//        if(!fYMap.isEmpty()) {
+//            for(IAxis axis : fChart.getAxisSet().getYAxes()) {
+//                IAxisTick yTick = axis.getTick();
+//                yTick.setFormat(new MapFormat(checkNotNull(fYMap)));
+//                updateTickMark(checkNotNull(fYMap), yTick, fChart.getPlotArea().getSize().y);
+//            }
+//        }
     }
 
     private void generateXTitle() {
@@ -420,25 +429,15 @@ public abstract class XYChartViewer implements IChartViewer {
         fParent.layout();
     }
 
+    public Composite getParent() {
+        return fParent;
+    }
+
     /**
      * @return receiver's chart
      */
     public Chart getChart() {
         return fChart;
-    }
-
-    /**
-     * @return map of categories for the Y axis
-     */
-    public BiMap<@Nullable String, Integer> getYMap() {
-        return fYMap;
-    }
-
-    /**
-     * @return map of categories for the X axis
-     */
-    public BiMap<@Nullable String, Integer> getXMap() {
-        return fXMap;
     }
 
     /**
@@ -456,13 +455,13 @@ public abstract class XYChartViewer implements IChartViewer {
     }
 
     /**
-     * This method creates unique categorie from a stream.
+     * This method creates unique categories from a stream.
      *
      * @param stream stream of data
      * @param map map of categories to fill
      */
-    protected static void generateLabelMap(Stream<String> stream, BiMap<@Nullable String, Integer> map) {
-        stream.distinct().forEach(str -> map.put(str, map.size()));
+    protected static void generateLabelMap(Stream<String> stream, BiMap<Integer, @Nullable String> map) {
+        stream.distinct().forEach(str -> map.inverse().putIfAbsent(str, map.size()));
     }
 
     private String getTitle() {
@@ -533,7 +532,7 @@ public abstract class XYChartViewer implements IChartViewer {
         refreshDisplayTitle(yTitle, fYTitle, plotRect.height);
     }
 
-    private static void updateTickMark(BiMap<@Nullable String, Integer> map, IAxisTick tick, int availableLenghtPixel) {
+    protected static void updateTickMark(Map<Integer, @Nullable String> map, IAxisTick tick, int availableLenghtPixel) {
         int nbLabels = Math.max(1, map.size());
         int stepSizePixel = availableLenghtPixel / nbLabels;
         /*

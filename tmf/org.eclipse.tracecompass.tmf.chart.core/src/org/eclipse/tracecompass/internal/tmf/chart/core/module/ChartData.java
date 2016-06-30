@@ -49,7 +49,7 @@ public class ChartData {
      */
     public Long countDiffXData() {
         return fXData.stream()
-                .map(descriptor -> descriptor.getAspect().getClass())
+                .map(descriptor -> descriptor.getAspect().hashCode())
                 .distinct()
                 .count();
     }
@@ -59,7 +59,7 @@ public class ChartData {
      */
     public Long countDiffYData() {
         return fXData.stream()
-                .map(descriptor -> descriptor.getAspect().getClass())
+                .map(descriptor -> descriptor.getAspect().hashCode())
                 .distinct()
                 .count();
     }

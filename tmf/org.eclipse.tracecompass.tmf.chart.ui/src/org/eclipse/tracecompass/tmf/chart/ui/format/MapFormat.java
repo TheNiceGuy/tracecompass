@@ -11,12 +11,10 @@ package org.eclipse.tracecompass.tmf.chart.ui.format;
 import java.text.FieldPosition;
 import java.text.Format;
 import java.text.ParsePosition;
+import java.util.Map;
 import java.util.Map.Entry;
 
-
 import org.eclipse.jdt.annotation.Nullable;
-
-import com.google.common.collect.BiMap;
 
 /**
  * Format label based on a given Map<String, Integer>
@@ -29,7 +27,7 @@ public class MapFormat extends Format {
 
     private static final String SWTCHART_EMPTY_LABEL = " "; //$NON-NLS-1$
     private static final String UNKNOWN_REPRESENTATION = "?"; //$NON-NLS-1$
-    private final BiMap<@Nullable String, Integer> fMap;
+    private final Map<Integer, @Nullable String> fMap;
 
     /**
      * Constructor
@@ -37,8 +35,9 @@ public class MapFormat extends Format {
      * @param map
      *            Map of indices to labels
      */
-    public MapFormat(BiMap<@Nullable String, Integer> map) {
+    public MapFormat(Map<Integer, @Nullable String> map) {
         super();
+
         fMap = map;
     }
 
@@ -50,28 +49,30 @@ public class MapFormat extends Format {
 
         Double doubleObj = (Double) obj;
 
-        /*
-         * Return a string buffer with a space in it since SWT does not like to
-         * draw empty strings.
-         */
-        if ((doubleObj % 1 != 0) || !fMap.containsValue((doubleObj.intValue()))) {
-            return new StringBuffer(SWTCHART_EMPTY_LABEL);
-        }
+        return toAppendTo.append(fMap.get(doubleObj.intValue()));
 
-        for (Entry<@Nullable String, Integer> entry : fMap.entrySet()) {
-            /*
-             * FIXME: Find if the elements are the same, based on their double
-             * value, because SWTChart uses double values so we do the same
-             * check. The loss of precision could lead to false positives.
-             */
-            if (Double.compare(entry.getValue().doubleValue(), doubleObj.doubleValue()) == 0) {
-                if (entry.getKey() == null) {
-                    return new StringBuffer(UNKNOWN_REPRESENTATION);
-                }
-                return toAppendTo.append(entry.getKey());
-            }
-        }
-        return new StringBuffer(SWTCHART_EMPTY_LABEL);
+//        /*
+//         * Return a string buffer with a space in it since SWT does not like to
+//         * draw empty strings.
+//         */
+//        if ((doubleObj % 1 != 0) || !fMap.containsValue((doubleObj.intValue()))) {
+//            return new StringBuffer(SWTCHART_EMPTY_LABEL);
+//        }
+//
+//        for (Entry<@Nullable String, Integer> entry : fMap.entrySet()) {
+//            /*
+//             * FIXME: Find if the elements are the same, based on their double
+//             * value, because SWTChart uses double values so we do the same
+//             * check. The loss of precision could lead to false positives.
+//             */
+//            if (Double.compare(entry.getValue().doubleValue(), doubleObj.doubleValue()) == 0) {
+//                if (entry.getKey() == null) {
+//                    return new StringBuffer(UNKNOWN_REPRESENTATION);
+//                }
+//                return toAppendTo.append(entry.getKey());
+//            }
+//        }
+//        return new StringBuffer(SWTCHART_EMPTY_LABEL);
     }
 
     @Override

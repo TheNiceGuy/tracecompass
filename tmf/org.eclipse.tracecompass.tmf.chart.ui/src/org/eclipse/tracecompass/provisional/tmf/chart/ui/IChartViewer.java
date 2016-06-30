@@ -67,12 +67,15 @@ public interface IChartViewer {
     static IChartViewer createChart(Composite parent, ChartData series, ChartModel model) {
         switch (model.getChartType()) {
         case BAR_CHART:
-            BarChart chart = new BarChart(parent, series, model);
-            chart.populate();
+            BarChart barChart = new BarChart(parent, series, model);
+            barChart.populate();
 
-            return chart;
+            return barChart;
         case SCATTER_CHART:
-            return new ScatterChart(parent, series, model);
+            ScatterChart scatterChart = new ScatterChart(parent, series, model);
+            scatterChart.populate();
+
+            return scatterChart;
         case PIE_CHART:
             /**
              * TODO

@@ -6,7 +6,6 @@ Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.eclipse.tracecompass.internal.tmf.chart.ui.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
- org.eclipse.jdt.annotation,
  org.eclipse.tracecompass.tmf.ui,
  org.eclipse.tracecompass.tmf.core,
  org.eclipse.tracecompass.tmf.chart.core,
