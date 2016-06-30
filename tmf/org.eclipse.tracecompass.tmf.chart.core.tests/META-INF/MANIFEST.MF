@@ -4,7 +4,9 @@ Bundle-Name: Tests
 Bundle-SymbolicName: org.eclipse.tracecompass.tmf.chart.core.tests
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.eclipse.tracecompass.internal.tmf.chart.core.tests.Activator
-Require-Bundle: org.eclipse.core.runtime
+Require-Bundle: org.eclipse.core.runtime,
+ org.junit,
+ org.eclipse.tracecompass.tmf.chart.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.ui.plugin
