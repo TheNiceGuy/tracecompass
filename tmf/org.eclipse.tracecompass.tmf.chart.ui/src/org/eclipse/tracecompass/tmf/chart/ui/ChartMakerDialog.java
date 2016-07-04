@@ -295,7 +295,7 @@ public class ChartMakerDialog extends SelectionDialog {
     public void okPressed() {
         java.util.List<DataDescriptor> descriptors = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors();
 
-        ChartModel.ChartType type = ChartModel.ChartType.resolveName(fComboChartType.getText());
+        ChartModel.ChartType type = ChartModel.ChartType.resolveChartType(fComboChartType.getText());
         if(type == null) {
             return;
         }

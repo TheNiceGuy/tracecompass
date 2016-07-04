@@ -21,6 +21,11 @@ public class DataDescriptor {
         fSource = source;
     }
 
+    public DataDescriptor(DataDescriptor descriptor) {
+        fAspect = descriptor.getAspect();
+        fSource = descriptor.getSource();
+    }
+
     public AbstractAspect getAspect() {
         return fAspect;
     }

@@ -14,8 +14,6 @@ import org.eclipse.jdt.annotation.Nullable;
  * This object should contain all the information needed to create a
  * chart in the GUI, independently of the actual chart implementation.
  *
- * TODO: add axis names?
- *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
 public class ChartModel {
@@ -36,17 +34,18 @@ public class ChartModel {
          */
         PIE_CHART(Messages.ChartModel_EnumPieChart);
 
-        String fName;
+        private String fName;
 
         private ChartType(String name) {
             fName = name;
         }
 
         /**
-         * @param name name of the chart type
+         * @param name
+         *              name of the chart type
          * @return chart type
          */
-        public static @Nullable ChartType resolveName(String name) {
+        public static @Nullable ChartType resolveChartType(String name) {
             if(name.equals(BAR_CHART.fName)) {
                 return BAR_CHART;
             } else if(name.equals(SCATTER_CHART.fName)) {
@@ -71,9 +70,12 @@ public class ChartModel {
     /**
      * Constructor.
      *
-     * @param type chart type
-     * @param xlog whether X axis is logarithmic
-     * @param ylog whether Y axis is logarithmic
+     * @param type
+     *              chart type
+     * @param xlog
+     *              whether X axis is logarithmic
+     * @param ylog
+     *              whether Y axis is logarithmic
      */
     public ChartModel(ChartType type, boolean xlog, boolean ylog) {
         fType = type;

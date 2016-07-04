@@ -71,7 +71,7 @@ public class ChartView extends TmfView {
                 }
 
                 //BarChartViewer bar = new BarChartViewer(sashForm, chartData, chartModel);
-                IChartViewer.createChart(sashForm, chartData, chartModel);
+                IChartViewer.createChart(sashForm, chartData, chartModel, null);
             }
 
             @Override

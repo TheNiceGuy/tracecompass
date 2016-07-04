@@ -8,6 +8,7 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.tmf.chart.core.module;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,12 +23,22 @@ public class ChartData {
     /**
      * Constructor.
      *
-     * @param xData data descriptor for the X axis
-     * @param yData data descriptors for the Y axis
+     * @param xData
+     *              data descriptor for the X axis
+     * @param yData
+     *              data descriptors for the Y axis
      */
     public ChartData(List<DataDescriptor> xData, List<DataDescriptor> yData) {
-        fXData = xData;
-        fYData = yData;
+        fXData = new ArrayList<>();
+        fYData = new ArrayList<>();
+
+        for(DataDescriptor descriptor : xData) {
+            fXData.add(new DataDescriptor(descriptor));
+        }
+
+        for(DataDescriptor descriptor : yData) {
+            fYData.add(new DataDescriptor(descriptor));
+        }
     }
 
     /**

@@ -57,22 +57,27 @@ public interface IChartViewer {
     void dispose();
 
     /**
-     * This method creates a chart from a data series.
+     * Factory method creates a chart from a data series
      *
-     * @param parent parent composite
-     * @param series data series to plot
-     * @param model chart model to use
+     * @param parent
+     *              parent composite
+     * @param data
+     *              configured data series for the chart
+     * @param model
+     *              chart model to use
+     * @param title
+     *              title of the chart
      * @return chart object
      */
-    static IChartViewer createChart(Composite parent, ChartData series, ChartModel model) {
+    static IChartViewer createChart(Composite parent, ChartData data, ChartModel model, String title) {
         switch (model.getChartType()) {
         case BAR_CHART:
-            BarChart barChart = new BarChart(parent, series, model);
+            BarChart barChart = new BarChart(parent, data, model, title);
             barChart.populate();
 
             return barChart;
         case SCATTER_CHART:
-            ScatterChart scatterChart = new ScatterChart(parent, series, model);
+            ScatterChart scatterChart = new ScatterChart(parent, data, model, title);
             scatterChart.populate();
 
             return scatterChart;
