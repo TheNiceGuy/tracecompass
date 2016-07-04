@@ -202,11 +202,14 @@ public abstract class XYChartViewer implements IChartViewer {
      *              configured data series for the chart
      * @param model
      *              chart model to use
+     * @param title
+     *              title of the chart
      */
-    public XYChartViewer(Composite parent, ChartData data, ChartModel model) {
+    public XYChartViewer(Composite parent, ChartData data, ChartModel model, @Nullable String title) {
         fParent = parent;
         fData = data;
         fModel = model;
+        fChartTitle = title;
 
         fIsXContinuous = areAspectsContinuous(getData().getXData());
         fIsYContinuous = areAspectsContinuous(getData().getYData());
@@ -216,7 +219,6 @@ public abstract class XYChartViewer implements IChartViewer {
         fXSeries = new HashMap<>();
         fYSeries = new HashMap<>();
 
-        fChartTitle = null;
         fChart = new Chart(parent, SWT.NONE);
 
         /* Compute ranges */
@@ -257,6 +259,20 @@ public abstract class XYChartViewer implements IChartViewer {
             fChart.getDisplay().removeFilter(SWT.MouseExit, mouseExit);
         });
         fChart.addControlListener(new ResizeEvent());
+    }
+
+    /**
+     * Surcharged constructor.
+     *
+     * @param parent
+     *              parent composite
+     * @param data
+     *              configured data series for the chart
+     * @param model
+     *              chart model to use
+     */
+    public XYChartViewer(Composite parent, ChartData data, ChartModel model) {
+        this(parent, data, model, null);
     }
 
     /**

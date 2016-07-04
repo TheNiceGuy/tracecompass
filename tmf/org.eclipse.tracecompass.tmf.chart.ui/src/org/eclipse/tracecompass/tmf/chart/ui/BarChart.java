@@ -82,12 +82,17 @@ public class BarChart extends XYChartViewer {
     /**
      * Constructor.
      *
-     * @param parent parent composite
-     * @param dataSeries configured data series for the chart
-     * @param model chart model to use
+     * @param parent
+     *              parent composite
+     * @param data
+     *              configured data series for the chart
+     * @param model
+     *              chart model to use
+     * @param title
+     *              title of the chart
      */
-    public BarChart(Composite parent, ChartData dataSeries, ChartModel model) {
-        super(parent, dataSeries, model);
+    public BarChart(Composite parent, ChartData data, ChartModel model, String title) {
+        super(parent, data, model, title);
 
         /* Enable categories */
         getChart().getAxisSet().getXAxis(0).enableCategory(true);
@@ -142,6 +147,20 @@ public class BarChart extends XYChartViewer {
             fLogScaleEpsilon = fMin - ((fMin * delta) / (LOGSCALE_EPSILON_FACTOR * fMax));
 
         }
+    }
+
+    /**
+     * Surcharged constructor.
+     *
+     * @param parent
+     *              parent composite
+     * @param data
+     *              configured data series for the chart
+     * @param model
+     *              chart model to use
+     */
+    public BarChart(Composite parent, ChartData data, ChartModel model) {
+        this(parent, data, model, null);
     }
 
     @Override

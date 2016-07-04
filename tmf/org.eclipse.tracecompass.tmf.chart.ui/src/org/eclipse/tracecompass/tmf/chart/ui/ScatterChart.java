@@ -75,17 +75,36 @@ public class ScatterChart extends XYChartViewer {
     // ------------------------------------------------------------------------
 
     /**
-     * This constructor creates the chart.
+     * Constructor.
      *
-     * @param parent parent composite
-     * @param dataSeries configured data series for the chart
-     * @param model chart model to use
+     * @param parent
+     *              parent composite
+     * @param data
+     *              configured data series for the chart
+     * @param model
+     *              chart model to use
+     * @param title
+     *              title of the chart
      */
-    public ScatterChart(Composite parent, ChartData dataSeries, ChartModel model) {
-        super(parent, dataSeries, model);
+    public ScatterChart(Composite parent, ChartData data, ChartModel model, String title) {
+        super(parent, data, model, title);
 
         fXMap = checkNotNull(HashBiMap.create());
         fYMap = checkNotNull(HashBiMap.create());
+    }
+
+    /**
+     * Surcharged constructor.
+     *
+     * @param parent
+     *              parent composite
+     * @param data
+     *              configured data series for the chart
+     * @param model
+     *              chart model to use
+     */
+    public ScatterChart(Composite parent, ChartData data, ChartModel model) {
+        this(parent, data, model, null);
     }
 
     @Override
