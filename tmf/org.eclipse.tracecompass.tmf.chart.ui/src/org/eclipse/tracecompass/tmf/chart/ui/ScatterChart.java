@@ -222,7 +222,7 @@ public class ScatterChart extends XYChartViewer {
     @Override
     protected void refreshDisplayLabels() {
         /* Only if we have at least 1 X category */
-        if (fVisibleXMap.size() == 0) {
+        if (fVisibleXMap == null) {
             return;
         }
 
@@ -317,7 +317,7 @@ public class ScatterChart extends XYChartViewer {
      */
     public static <K,V> void resetBiMap(BiMap<K,V> reference, BiMap<K,V> map) {
         for(Entry<K,V> entry : reference.entrySet()) {
-            map.remove(entry.getValue());
+            map.inverse().remove(entry.getValue());
             map.put(entry.getKey(), entry.getValue());
         }
     }

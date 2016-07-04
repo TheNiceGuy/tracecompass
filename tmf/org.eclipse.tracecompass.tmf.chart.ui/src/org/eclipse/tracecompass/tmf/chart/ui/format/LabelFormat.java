@@ -11,10 +11,10 @@ package org.eclipse.tracecompass.tmf.chart.ui.format;
 import java.text.FieldPosition;
 import java.text.Format;
 import java.text.ParsePosition;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.eclipse.jdt.annotation.Nullable;
+
+import com.google.common.collect.BiMap;
 
 /**
  * Format label based on a given Map<String, Integer>
@@ -27,7 +27,7 @@ public class LabelFormat extends Format {
 
     private static final String SWTCHART_EMPTY_LABEL = " "; //$NON-NLS-1$
     private static final String UNKNOWN_REPRESENTATION = "?"; //$NON-NLS-1$
-    private final Map<@Nullable String, Integer> fMap;
+    private final BiMap<@Nullable String, Integer> fMap;
 
     /**
      * Constructor
@@ -35,7 +35,7 @@ public class LabelFormat extends Format {
      * @param map
      *            Map of indices to labels
      */
-    public LabelFormat(Map<@Nullable String, Integer> map) {
+    public LabelFormat(BiMap<@Nullable String, Integer> map) {
         super();
 
         fMap = map;
@@ -57,20 +57,12 @@ public class LabelFormat extends Format {
             return new StringBuffer(SWTCHART_EMPTY_LABEL);
         }
 
-        for (Entry<@Nullable String, Integer> entry : fMap.entrySet()) {
-            /*
-             * FIXME: Find if the elements are the same, based on their double
-             * value, because SWTChart uses double values so we do the same
-             * check. The loss of precision could lead to false positives.
-             */
-            if (Double.compare(entry.getValue().doubleValue(), doubleObj.doubleValue()) == 0) {
-                if (entry.getKey() == null) {
-                    return new StringBuffer(UNKNOWN_REPRESENTATION);
-                }
-                return toAppendTo.append(entry.getKey());
-            }
+        String key = fMap.inverse().get(doubleObj.intValue());
+        if(key == null) {
+            return new StringBuffer(UNKNOWN_REPRESENTATION);
         }
-        return new StringBuffer(SWTCHART_EMPTY_LABEL);
+
+        return toAppendTo.append(key);
     }
 
     @Override
