@@ -49,18 +49,24 @@ import org.eclipse.tracecompass.tmf.chart.ui.format.ChartTimeStampFormat;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
 import org.swtchart.Chart;
+import org.swtchart.IAxis;
 import org.swtchart.IAxisTick;
 import org.swtchart.ISeries;
 import org.swtchart.ITitle;
 
-import com.google.common.collect.BiMap;
-
 /**
  * Abstract class for XY charts.
+ *
+ * FIXME: value (s)
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
 public abstract class XYChartViewer implements IChartViewer {
+
+    // ------------------------------------------------------------------------
+    // Constants
+    // ------------------------------------------------------------------------
+
     /**
      * Ellipsis character
      */
@@ -78,178 +84,124 @@ public abstract class XYChartViewer implements IChartViewer {
      */
     private static final int BIG_DECIMAL_DIVISION_SCALE = 22;
     /**
-     * Time stamp formatter for intervals in the days range.
+     * Time stamp formatter for intervals in the days range
      */
     protected static final ChartTimeStampFormat DAYS_FORMATTER = new ChartTimeStampFormat("dd HH:mm"); //$NON-NLS-1$
     /**
-     * Time stamp formatter for intervals in the hours range.
+     * Time stamp formatter for intervals in the hours range
      */
     protected static final ChartTimeStampFormat HOURS_FORMATTER = new ChartTimeStampFormat("HH:mm"); //$NON-NLS-1$
     /**
-     * Time stamp formatter for intervals in the minutes range.
+     * Time stamp formatter for intervals in the minutes range
      */
     protected static final ChartTimeStampFormat MINUTES_FORMATTER = new ChartTimeStampFormat("mm:ss"); //$NON-NLS-1$
     /**
-     * Time stamp formatter for intervals in the seconds range.
+     * Time stamp formatter for intervals in the seconds range
      */
     protected static final ChartTimeStampFormat SECONDS_FORMATTER = new ChartTimeStampFormat("ss"); //$NON-NLS-1$
     /**
-     * Time stamp formatter for intervals in the milliseconds range.
+     * Time stamp formatter for intervals in the milliseconds range
      */
     protected static final ChartTimeStampFormat MILLISECONDS_FORMATTER = new ChartTimeStampFormat("ss.SSS"); //$NON-NLS-1$
     /**
-     * Decimal formatter to display nanoseconds as seconds.
+     * Decimal formatter to display nanoseconds as seconds
      */
     protected static final DecimalUnitFormat NANO_TO_SECS_FORMATTER = new ChartDecimalUnitFormat(0.000000001);
     /**
-     * Default decimal formatter.
+     * Default decimal formatter
      */
     protected static final DecimalUnitFormat DECIMAL_FORMATTER = new ChartDecimalUnitFormat();
 
+    // ------------------------------------------------------------------------
+    // Members
+    // ------------------------------------------------------------------------
+
+    /**
+     * Composite parent of the chart
+     */
     private Composite fParent;
+    /**
+     * Top-right close button
+     */
     private Button fCloseButton;
+    /**
+     * Title of the chart
+     */
     private String fChartTitle;
-    private String fXTitle;
-    private String fYTitle;
+    /**
+     * SWT Chart object
+     */
     private Chart fChart;
+    /**
+     * Data to plot into the chart
+     */
     private ChartData fData;
+    /**
+     * Model used to make the chart
+     */
     private ChartModel fModel;
-    protected Map<@NonNull DataDescriptor, @NonNull ISeries> fXSeries;
-    protected Map<@NonNull DataDescriptor, @NonNull ISeries> fYSeries;
-
-    /* Use a scale from 0 to 1 internally for both axes */
+    /**
+     * X axis title
+     */
+    private String fXTitle;
+    /**
+     * Y axis title
+     */
+    private String fYTitle;
+    /**
+     * Map between data descriptors and X series
+     */
+    private Map<@NonNull DataDescriptor, @NonNull ISeries> fXSeries;
+    /**
+     * Map between data descriptors and Y series
+     */
+    private Map<@NonNull DataDescriptor, @NonNull ISeries> fYSeries;
+    /**
+     * Boolean indicating whether the X axis is continuous or not
+     */
+    private @Nullable Boolean fIsXContinuous;
+    /**
+     * Boolean indicating whether the Y axis is continuous or not
+     */
+    private @Nullable Boolean fIsYContinuous;
+    /**
+     * Internal X range of the chart
+     */
     protected ChartRange fXInternalRange = new ChartRange(checkNotNull(BigDecimal.ZERO), checkNotNull(BigDecimal.ONE));
+    /**
+     * Internal Y range of the chart
+     */
     protected ChartRange fYInternalRange = new ChartRange(checkNotNull(BigDecimal.ZERO), checkNotNull(BigDecimal.ONE));
-
+    /**
+     * External X range of the data
+     */
     protected @Nullable ChartRange fXExternalRange = null;
+    /**
+     * External Y range of the data
+     */
     protected @Nullable ChartRange fYExternalRange = null;
 
-    private class ResizeEvent implements ControlListener {
-        @Override
-        public void controlMoved(ControlEvent e) {}
-
-        @Override
-        public void controlResized(ControlEvent e) {
-            /* refresh titles */
-            refreshDisplayTitles();
-
-            /* Refresh the Axis labels to fit the current chart size */
-            refreshDisplayLabels();
-
-            /* relocate the close button */
-            fCloseButton.setLocation(fChart.getSize().x-fCloseButton.getSize().x-5, 5);
-        }
-    }
-
-    private class CloseButtonEvent implements SelectionListener {
-        @Override
-        public void widgetSelected(SelectionEvent e) {
-            dispose();
-        }
-
-        @Override
-        public void widgetDefaultSelected(SelectionEvent e) {
-        }
-    }
-
-    private class MouseEnterEvent implements Listener {
-        @Override
-        public void handleEvent(Event event) {
-            Control control = (Control) event.widget;
-            Point display = control.toDisplay(event.x, event.y);
-            Point location = getChart().getParent().toControl(display);
-
-            /*
-             * Only set to visible if we are at the right location, in the
-             * right shell.
-             */
-            boolean visible = getChart().getBounds().contains(location) &&
-                    control.getShell().equals(getChart().getShell());
-            fCloseButton.setVisible(visible);
-        }
-    }
-
-    private class MouseExitEvent implements Listener {
-        @Override
-        public void handleEvent(Event event) {
-            fCloseButton.setVisible(false);
-        }
-    }
-
-    /**
-     * This method makes sure that the {@link ChartData}} is
-     * properly built for making XY charts.
-     */
-    protected void assertData() {
-        if(getData().getXData().size() != getData().getYData().size()) {
-            throw new IllegalArgumentException("Number of Y series does not match with X series"); //$NON-NLS-1$
-        }
-
-        /* Make sure X axis has the same continuity for each aspect */
-        if(getData().countDiffXData() > 1) {
-            long count = getData().getYData().stream()
-                    .map(descriptor -> descriptor.getAspect().isContinuous())
-                    .distinct()
-                    .count();
-            if(count != 1) {
-                throw new IllegalArgumentException("Each aspect must have the same continuity."); //$NON-NLS-1$
-            }
-
-            /* Make sure X logscale is disabled if data is discontinuous */
-            boolean continuous = getData().getXData().get(0).getAspect().isContinuous();
-            boolean logscale = getModel().isXLogscale();
-            if(!continuous && logscale) {
-                throw new IllegalArgumentException("Cannot have logarithmic scale on discontinuous data."); //$NON-NLS-1$
-            }
-        }
-
-        /* Make sure Y axis has the same continuity for each aspect */
-        if(getData().countDiffYData() > 1) {
-            long count = getData().getYData().stream()
-                    .map(descriptor -> descriptor.getAspect().isContinuous())
-                    .distinct()
-                    .count();
-            if(count != 1) {
-                throw new IllegalArgumentException("Each aspect must have the same continuity."); //$NON-NLS-1$
-            }
-
-            /* Make sure Y logscale is disabled if data is discontinuous */
-            boolean continuous = getData().getYData().get(0).getAspect().isContinuous();
-            boolean logscale = getModel().isYLogscale();
-            if(!continuous && logscale) {
-                throw new IllegalArgumentException("Cannot have logarithmic scale on discontinuous data."); //$NON-NLS-1$
-            }
-        }
-    }
-
-    protected abstract void computeRanges();
-
-    protected abstract void createSeries();
-
-    /**
-     * This methods changes the color of the series.
-     */
-    protected abstract void setSeriesColor();
-
-    protected abstract void generateYData(List<DataDescriptor> descriptors);
-
-    protected abstract void generateXData(List<DataDescriptor> descriptors);
-
-    protected abstract void configureAxis();
-
-    protected abstract void refreshDisplayLabels();
+    // ------------------------------------------------------------------------
+    // Important methods
+    // ------------------------------------------------------------------------
 
     /**
      * Constructor.
      *
-     * @param parent parent composite
-     * @param data configured data series for the chart
-     * @param model chart model to use
+     * @param parent
+     *              parent composite
+     * @param data
+     *              configured data series for the chart
+     * @param model
+     *              chart model to use
      */
     public XYChartViewer(Composite parent, ChartData data, ChartModel model) {
         fParent = parent;
         fData = data;
         fModel = model;
+
+        fIsXContinuous = areAspectsContinuous(getData().getXData());
+        fIsYContinuous = areAspectsContinuous(getData().getYData());
 
         assertData();
 
@@ -279,7 +231,7 @@ public abstract class XYChartViewer implements IChartViewer {
         /* Refresh the titles to fit the current chart size */
         refreshDisplayTitles();
 
-        /* create the close button */
+        /* Create the close button */
         Image close = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_ELCL_REMOVE);
         fCloseButton = new Button(fChart, SWT.PUSH);
         fCloseButton.setSize(25, 25);
@@ -287,7 +239,7 @@ public abstract class XYChartViewer implements IChartViewer {
         fCloseButton.setImage(close);
         fCloseButton.addSelectionListener(new CloseButtonEvent());
 
-        /* add listeners for the visibility of the close button and resizing */
+        /* Add listeners for the visibility of the close button and resizing */
         Listener mouseEnter = new MouseEnterEvent();
         Listener mouseExit = new MouseExitEvent();
         fChart.getDisplay().addFilter(SWT.MouseEnter, mouseEnter);
@@ -299,16 +251,43 @@ public abstract class XYChartViewer implements IChartViewer {
         fChart.addControlListener(new ResizeEvent());
     }
 
-    public static void printRange(ChartRange range) {
-        System.out.println(range.getMinimum() + " " + range.getMaximum());
+    /**
+     * This method makes sure that the {@link ChartData}} is
+     * properly built for making XY charts.
+     */
+    protected void assertData() {
+        if(getData().getXData().size() != getData().getYData().size()) {
+            throw new IllegalArgumentException("Number of Y series does not match with X series"); //$NON-NLS-1$
+        }
+
+        /* Make sure X axis has the same continuity for each aspect */
+        @Nullable Boolean xContinuous = isXContinuous();
+        if(xContinuous == null) {
+            throw new IllegalArgumentException("Each aspect must have the same continuity."); //$NON-NLS-1$
+        }
+
+        /* Make sure X logscale is disabled if data is discontinuous */
+        if(!xContinuous && getModel().isXLogscale()) {
+            throw new IllegalArgumentException("Cannot have logarithmic scale on discontinuous data."); //$NON-NLS-1$
+        }
+
+        /* Make sure Y axis has the same continuity for each aspect */
+        @Nullable Boolean yContinuous = isYContinuous();
+        if(yContinuous == null) {
+            throw new IllegalArgumentException("Each aspect must have the same continuity."); //$NON-NLS-1$
+        }
+
+        /* Make sure Y logscale is disabled if data is discontinuous */
+        if(!yContinuous && getModel().isYLogscale()) {
+            throw new IllegalArgumentException("Cannot have logarithmic scale on discontinuous data."); //$NON-NLS-1$
+        }
     }
 
+    /**
+     * This method should be called after the constructor. Normally, the factory constructor
+     * {@link IChartViewer#createChart(Composite, ChartData, ChartModel)} handles that.
+     */
     public void populate() {
-        printRange(fXInternalRange);
-        printRange(fYInternalRange);
-        printRange(fXExternalRange);
-        printRange(fYExternalRange);
-
         /* Create series */
         createSeries();
         setSeriesColor();
@@ -320,28 +299,106 @@ public abstract class XYChartViewer implements IChartViewer {
         Stream.of(getChart().getAxisSet().getYAxes()).forEach(axis -> axis.enableLogScale(getModel().isXLogscale()));
         Stream.of(getChart().getAxisSet().getYAxes()).forEach(axis -> axis.enableLogScale(getModel().isYLogscale()));
 
-        configureAxis();
+        configureAxes();
 
-//        /* Format X ticks */
-//        if(!fXMap.isEmpty()) {
-//            for(IAxis axis : fChart.getAxisSet().getXAxes()) {
-//                IAxisTick xTick = axis.getTick();
-//                xTick.setFormat(new MapFormat(checkNotNull(fXMap)));
-//                updateTickMark(checkNotNull(fXMap), xTick, fChart.getPlotArea().getSize().x);
-//            }
-//        }
-//
-//        /* Format Y ticks */
-//        if(!fYMap.isEmpty()) {
-//            for(IAxis axis : fChart.getAxisSet().getYAxes()) {
-//                IAxisTick yTick = axis.getTick();
-//                yTick.setFormat(new MapFormat(checkNotNull(fYMap)));
-//                updateTickMark(checkNotNull(fYMap), yTick, fChart.getPlotArea().getSize().y);
-//            }
-//        }
+        for(IAxis yAxis : getChart().getAxisSet().getYAxes()) {
+            /*
+             * SWTChart workaround: SWTChart fiddles with tick mark visibility based
+             * on the fact that it can parse the label to double or not.
+             *
+             * If the label happens to be a double, it checks for the presence of
+             * that value in its own tick labels to decide if it should add it or
+             * not. If it happens that the parsed value is already present in its
+             * map, the tick gets a visibility of false.
+             *
+             * The X axis does not have this problem since SWTCHART checks on label
+             * angle, and if it is != 0 simply does no logic regarding visibility.
+             * So simply set a label angle of 1 to the axis.
+             */
+            yAxis.getTick().setTickLabelAngle(1);
+        }
+
+        /* Adjust the chart range */
+        getChart().getAxisSet().adjustRange();
     }
 
-    private void generateXTitle() {
+    @Override
+    public void dispose() {
+        fChart.dispose();
+        fParent.layout();
+    }
+
+    // ------------------------------------------------------------------------
+    // Abstract methods
+    // ------------------------------------------------------------------------
+
+    /**
+     * This method is used to compute the external ranges of the data. It is
+     * called by the constructor.
+     */
+    protected abstract void computeRanges();
+
+    /**
+     * This method is used to create series. It is called by the {@link #populate()}}
+     * method.
+     */
+    protected abstract void createSeries();
+
+    /**
+     * This method changes the color of the series. It is called by the
+     * {@link #populate()}}  method.
+     */
+    protected abstract void setSeriesColor();
+
+    /**
+     * This method generate and set Y data for each serie. It is called by the
+     * {@link #populate()}}  method.
+     *
+     * @param descriptors
+     *              the descriptors to generate data from
+     */
+    protected abstract void generateYData(List<DataDescriptor> descriptors);
+
+    /**
+     * This method generate and set X data for each serie. It is called by the
+     * {@link #populate()}} method.
+     *
+     * @param descriptors
+     *              the descriptors to generate data from
+     */
+    protected abstract void generateXData(List<DataDescriptor> descriptors);
+
+    /**
+     * This method configures the axes. It is called by the {@link #populate()}
+     * method.
+     */
+    protected abstract void configureAxes();
+
+    /**
+     * This method refreshed the display labels. It is called by the {@link #populate()}
+     * method.
+     */
+    protected abstract void refreshDisplayLabels();
+
+    // ------------------------------------------------------------------------
+    // Operations
+    // ------------------------------------------------------------------------
+
+    /**
+     * @return title of the chart
+     */
+    protected String getTitle() {
+        if(fChartTitle == null) {
+            return fXTitle + " vs. " + fYTitle; //$NON-NLS-1$
+        }
+
+        return fChartTitle;
+    }
+
+    /**
+     * This method generate the X axis title.
+     */
+    protected void generateXTitle() {
         if(fData.getXData().size() == 1) {
             /*
              * There is only 1 series in the chart, we will use its name as the
@@ -379,7 +436,10 @@ public abstract class XYChartViewer implements IChartViewer {
         }
     }
 
-    private void generateYTitle() {
+    /**
+     * This method generate the Y axis title.
+     */
+    protected void generateYTitle() {
         if(fData.getYData().size() == 1) {
             /*
              * There is only 1 series in the chart, we will use its name as the
@@ -421,55 +481,6 @@ public abstract class XYChartViewer implements IChartViewer {
             /* Put legend at the bottom */
             fChart.getLegend().setPosition(SWT.BOTTOM);
         }
-    }
-
-    @Override
-    public void dispose() {
-        fChart.dispose();
-        fParent.layout();
-    }
-
-    public Composite getParent() {
-        return fParent;
-    }
-
-    /**
-     * @return receiver's chart
-     */
-    public Chart getChart() {
-        return fChart;
-    }
-
-    /**
-     * @return data to make a chart from
-     */
-    public ChartData getData() {
-        return fData;
-    }
-
-    /**
-     * @return model to make a chart from
-     */
-    public ChartModel getModel() {
-        return fModel;
-    }
-
-    /**
-     * This method creates unique categories from a stream.
-     *
-     * @param stream stream of data
-     * @param map map of categories to fill
-     */
-    protected static void generateLabelMap(Stream<String> stream, BiMap<Integer, @Nullable String> map) {
-        stream.distinct().forEach(str -> map.inverse().putIfAbsent(str, map.size()));
-    }
-
-    private String getTitle() {
-        if(fChartTitle == null) {
-            return fXTitle + " vs. " + fYTitle; //$NON-NLS-1$
-        }
-
-        return fChartTitle;
     }
 
     /**
@@ -532,14 +543,78 @@ public abstract class XYChartViewer implements IChartViewer {
         refreshDisplayTitle(yTitle, fYTitle, plotRect.height);
     }
 
-    protected static void updateTickMark(Map<Integer, @Nullable String> map, IAxisTick tick, int availableLenghtPixel) {
+    // ------------------------------------------------------------------------
+    // Util methods
+    // ------------------------------------------------------------------------
+
+    /**
+     * Util method to count the number of different aspects contains in a list
+     * of data descriptors.
+     *
+     * @param descriptors
+     *              the list of data descriptors
+     * @return
+     *              the number of different aspects
+     */
+    protected static long countDiffAspects(List<DataDescriptor> descriptors) {
+        return descriptors.stream()
+                .map(descriptor -> descriptor.getAspect().hashCode())
+                .distinct()
+                .count();
+    }
+
+    /**
+     * Util method to check if a list of data descriptors is all continuous.
+     *
+     * @param descriptors
+                    the list of data descriptors to check
+     * @return
+     *              true is all aspects are continuous,
+     *              false if all aspects are discontinuous or
+     *              null if it shares both continuity
+     */
+    protected static @Nullable Boolean areAspectsContinuous(List<DataDescriptor> descriptors) {
+        long count = descriptors.stream()
+                .map(descriptor -> descriptor.getAspect().isContinuous())
+                .distinct()
+                .count();
+
+        if(count == 1) {
+            return descriptors.get(0).getAspect().isContinuous();
+        }
+
+        return null;
+    }
+
+    /**
+     * Util method to create unique categories from a stream.
+     *
+     * @param stream
+     *              stream of string to generate labels from
+     * @param map
+     *              map of categories to generate labels into
+     */
+    protected static void generateLabelMap(Stream<String> stream, Map<@Nullable String, @NonNull Integer> map) {
+        stream.distinct().forEach(str -> map.putIfAbsent(str, map.size()));
+    }
+
+    /**
+     * Util method to update tick mark of an axis. This step is a limitation
+     * on swtchart side regarding minimal grid step hint size. When the step
+     * size are smaller it get defined as the "default" value for the axis
+     * instead of the smallest one.
+     *
+     * @param map
+     *              map of labels used to compute the minimum size required
+     * @param tick
+     *              axis tick to update
+     * @param availableLenghtPixel
+     *              available lenght in pixel
+     */
+    protected static void updateTickMark(Map<@Nullable String, Integer> map, IAxisTick tick, int availableLenghtPixel) {
         int nbLabels = Math.max(1, map.size());
         int stepSizePixel = availableLenghtPixel / nbLabels;
-        /*
-         * This step is a limitation on swtchart side regarding minimal grid
-         * step hint size. When the step size are smaller it get defined as the
-         * "default" value for the axis instead of the smallest one.
-         */
+
         if (IAxisTick.MIN_GRID_STEP_HINT > stepSizePixel) {
             stepSizePixel = (int) IAxisTick.MIN_GRID_STEP_HINT;
         }
@@ -554,12 +629,12 @@ public abstract class XYChartViewer implements IChartViewer {
      * is true, a positive minimum value will be clamped down to zero.
      *
      * @param descriptors
-     *            The data sources that the range will represent
+     *            the data sources that the range will represent
      * @param clampToZero
-     *            If true, a positive minimum value will be clamped down to zero
+     *            if true, a positive minimum value will be clamped down to zero
      * @return the range
      */
-    protected ChartRange getRange(List<DataDescriptor> descriptors, boolean clampToZero) {
+    protected static ChartRange getRange(List<DataDescriptor> descriptors, boolean clampToZero) {
         /* Find the minimum and maximum values */
         BigDecimal min = new BigDecimal(Long.MAX_VALUE);
         BigDecimal max = new BigDecimal(Long.MIN_VALUE);
@@ -601,19 +676,18 @@ public abstract class XYChartViewer implements IChartViewer {
      * happen. To minimize this, transform the raw values to an internal
      * representation based on a linear transformation.
      *
-     * The internal value =
-     *
-     * ((rawValue - rawMinimum) * (internalRangeDelta/rawRangeDelta)) +
-     * internalMinimum
+     * The internal value = ((rawValue - rawMinimum) *
+     * (internalRangeDelta / rawRangeDelta)) + internalMinimum
      *
      * @param number
-     *            The number to transform
+     *              the number to transform
      * @param internalRange
-     *            The internal range definition to be used
+     *              the internal range definition to be used
      * @param externalRange
-     *            The external range definition to be used
-     * @return the transformed value in Double comprised inside the internal
-     *         range
+     *              the external range definition to be used
+     * @return
+     *              the transformed value in Double comprised inside the
+     *              internal range
      */
     protected static double getInternalDoubleValue(Number number, ChartRange internalRange, ChartRange externalRange) {
         BigDecimal value = new BigDecimal(number.toString());
@@ -632,39 +706,6 @@ public abstract class XYChartViewer implements IChartViewer {
     }
 
     /**
-     * Util method to check if a list of aspects are all continuous.
-     *
-     * @param descriptors
-     *            The list of aspects to check.
-     * @return true is all aspects are continuous, otherwise false.
-     */
-    protected static boolean areAspectsContinuous(List<DataDescriptor> descriptors) {
-        return descriptors.stream().allMatch(aspect -> aspect.getAspect().isContinuous());
-    }
-
-    /**
-     * Util method to check if a list of aspects are all time stamps.
-     *
-     * @param descriptors
-     *            The list of aspects to check.
-     * @return true is all aspects are time stamps, otherwise false.
-     */
-    protected static boolean areAspectsTimeStamp(List<DataDescriptor> descriptors) {
-        return descriptors.stream().allMatch(aspect -> aspect.getAspect().isTimeStamp());
-    }
-
-    /**
-     * Util method to check if a list of aspects are all time durations.
-     *
-     * @param descriptors
-     *            The list of aspects to check.
-     * @return true is all aspects are time durations, otherwise false.
-     */
-    protected static boolean areAspectsTimeDuration(List<DataDescriptor> descriptors) {
-        return descriptors.stream().allMatch(aspect -> aspect.getAspect().isTimeDuration());
-    }
-
-    /**
      * Util method that will return a formatter based on the aspects linked to an axis
      *
      * If all aspects are time stamps, return a timestamp formatter tuned to the interval.
@@ -672,11 +713,11 @@ public abstract class XYChartViewer implements IChartViewer {
      * Otherwise, return the generic decimal formatter.
      *
      * @param axisAspects
-     *            The list of aspects of the axis.
+     *              the list of aspects of the axis
      * @param internalRange
-     *            The internal range for value transformation
+     *              the internal range for value transformation
      * @param externalRange
-     *            The external range for value transformation
+     *              the external range for value transformation
      * @return a formatter for the axis.
      */
     protected static Format getContinuousAxisFormatter(List<DataDescriptor> axisAspects, @Nullable ChartRange internalRange, @Nullable ChartRange externalRange) {
@@ -718,23 +759,164 @@ public abstract class XYChartViewer implements IChartViewer {
             } else {
                 formatter = MILLISECONDS_FORMATTER;
             }
+
             ((ChartTimeStampFormat) formatter).setInternalRange(internalRange);
             ((ChartTimeStampFormat) formatter).setExternalRange(externalRange);
         } else if (areAspectsTimeDuration(axisAspects)) {
             /* Set the time duration formatter. */
             formatter = NANO_TO_SECS_FORMATTER;
+
             ((ChartDecimalUnitFormat) formatter).setInternalRange(internalRange);
             ((ChartDecimalUnitFormat) formatter).setExternalRange(externalRange);
         } else {
-            /*
-             * For other numeric aspects, use the default lami decimal unit
-             * formatter.
-             */
+            /* For other numeric aspects, use the default decimal unit formatter. */
             formatter = DECIMAL_FORMATTER;
+
             ((ChartDecimalUnitFormat) formatter).setInternalRange(internalRange);
             ((ChartDecimalUnitFormat) formatter).setExternalRange(externalRange);
         }
 
         return formatter;
+    }
+
+    /**
+     * Util method to check if a list of aspects are all time stamps.
+     *
+     * @param descriptors
+     *              the list of aspects to check.
+     * @return true is all aspects are time stamps, otherwise false.
+     */
+    protected static boolean areAspectsTimeStamp(List<DataDescriptor> descriptors) {
+        return descriptors.stream().allMatch(aspect -> aspect.getAspect().isTimeStamp());
+    }
+
+    /**
+     * Util method to check if a list of aspects are all time durations.
+     *
+     * @param descriptors
+     *              the list of aspects to check.
+     * @return true is all aspects are time durations, otherwise false.
+     */
+    protected static boolean areAspectsTimeDuration(List<DataDescriptor> descriptors) {
+        return descriptors.stream().allMatch(aspect -> aspect.getAspect().isTimeDuration());
+    }
+
+    // ------------------------------------------------------------------------
+    // Accessors
+    // ------------------------------------------------------------------------
+
+    /**
+     * @return receiver's composite parent
+     */
+    public Composite getParent() {
+        return fParent;
+    }
+
+    /**
+     * @return receiver's chart
+     */
+    public Chart getChart() {
+        return fChart;
+    }
+
+    /**
+     * @return data to make a chart from
+     */
+    public ChartData getData() {
+        return fData;
+    }
+
+    /**
+     * @return model to make a chart from
+     */
+    public ChartModel getModel() {
+        return fModel;
+    }
+
+    /**
+     * @return maps between X series and data descriptors
+     */
+    public Map<@NonNull DataDescriptor, @NonNull ISeries> getXSeries() {
+        return fXSeries;
+    }
+
+    /**
+     * @return maps between Y series and data descriptors
+     */
+    public Map<@NonNull DataDescriptor, @NonNull ISeries> getYSeries() {
+        return fYSeries;
+    }
+
+    /**
+     * This accessor return whether the X axis is continuous or not. If null
+     * is returned, then the axis is both continuous and discontinuous.
+     *
+     * @return boolean whether X axis is continuous or not
+     */
+    public @Nullable Boolean isXContinuous() {
+        return fIsXContinuous;
+    }
+
+    /**
+     * This accessor return whether the Y axis is continuous or not. If null
+     * is returned, then the axis is both continuous and discontinuous.
+     *
+     * @return boolean whether Y axis is continuous or not
+     */
+    public @Nullable Boolean isYContinuous() {
+        return fIsYContinuous;
+    }
+
+    // ------------------------------------------------------------------------
+    // Listeners
+    // ------------------------------------------------------------------------
+
+    private class ResizeEvent implements ControlListener {
+        @Override
+        public void controlMoved(ControlEvent e) {}
+
+        @Override
+        public void controlResized(ControlEvent e) {
+            /* Refresh titles */
+            refreshDisplayTitles();
+
+            /* Refresh the Axis labels to fit the current chart size */
+            refreshDisplayLabels();
+
+            /* relocate the close button */
+            fCloseButton.setLocation(fChart.getSize().x-fCloseButton.getSize().x-5, 5);
+        }
+    }
+
+    private class CloseButtonEvent implements SelectionListener {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            dispose();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+        }
+    }
+
+    private class MouseEnterEvent implements Listener {
+        @Override
+        public void handleEvent(Event event) {
+            Control control = (Control) event.widget;
+            Point display = control.toDisplay(event.x, event.y);
+            Point location = getChart().getParent().toControl(display);
+
+            /* Only set to visible if we are at the right location, in the right shell. */
+            boolean visible = getChart().getBounds().contains(location) &&
+                    control.getShell().equals(getChart().getShell());
+            fCloseButton.setVisible(visible);
+        }
+    }
+
+    private class MouseExitEvent implements Listener {
+        @Override
+        public void handleEvent(Event event) {
+            fCloseButton.setVisible(false);
+        }
     }
 }

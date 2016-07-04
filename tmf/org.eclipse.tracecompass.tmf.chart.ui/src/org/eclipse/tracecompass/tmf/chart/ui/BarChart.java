@@ -17,7 +17,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
@@ -46,16 +45,39 @@ import com.google.common.collect.Iterators;
  */
 public class BarChart extends XYChartViewer {
 
+    // ------------------------------------------------------------------------
+    // Constants
+    // ------------------------------------------------------------------------
+
+    /**
+     * Factor used in the computation of the logarithmic epsilon value
+     */
     private static final double LOGSCALE_EPSILON_FACTOR = 100.0;
 
-    private double fLogScaleEpsilon = ZERO_DOUBLE;
-    private double fMin;
-    private double fMax;
+    // ------------------------------------------------------------------------
+    // Members
+    // ------------------------------------------------------------------------
 
+    /**
+     * Logarithmic epsilon value to work around SWT limitations
+     */
+    private double fLogScaleEpsilon = ZERO_DOUBLE;
+    /**
+     * Minimum value of the Y data to work around SWT limitations
+     */
+    private double fMin;
+    /**
+     * Maximum value of the Y data to work around SWT limitations
+     */
+    private double fMax;
     /**
      * Map reprensenting categories on the X axis
      */
     private String[] fCategories;
+
+    // ------------------------------------------------------------------------
+    // Operations
+    // ------------------------------------------------------------------------
 
     /**
      * Constructor.
@@ -113,40 +135,18 @@ public class BarChart extends XYChartViewer {
             }
 
             /* Calculate epsilon */
-            double delta = max - min;
-            fLogScaleEpsilon = min - ((min * delta) / (LOGSCALE_EPSILON_FACTOR * max));
-
-            /**TODO*/
             fMin = min;
             fMax = max;
+
+            double delta = fMax - fMin;
+            fLogScaleEpsilon = fMin - ((fMin * delta) / (LOGSCALE_EPSILON_FACTOR * fMax));
+
         }
     }
 
     @Override
     public void populate() {
         super.populate();
-
-        for(IAxis yAxis : getChart().getAxisSet().getYAxes()) {
-            yAxis.getTick().setFormat(getContinuousAxisFormatter(getData().getYData(), fYInternalRange, fYExternalRange));
-
-            /*
-             * SWTChart workaround: SWTChart fiddles with tick mark visibility based
-             * on the fact that it can parse the label to double or not.
-             *
-             * If the label happens to be a double, it checks for the presence of
-             * that value in its own tick labels to decide if it should add it or
-             * not. If it happens that the parsed value is already present in its
-             * map, the tick gets a visibility of false.
-             *
-             * The X axis does not have this problem since SWTCHART checks on label
-             * angle, and if it is != 0 simply does no logic regarding visibility.
-             * So simply set a label angle of 1 to the axis.
-             */
-            yAxis.getTick().setTickLabelAngle(1);
-        }
-
-        /* Adjust the chart range */
-        getChart().getAxisSet().adjustRange();
 
         if (getModel().isYLogscale() && fLogScaleEpsilon != fMax) {
             getChart().getAxisSet().getYAxis(0).setRange(new Range(fLogScaleEpsilon, fMax));
@@ -199,10 +199,9 @@ public class BarChart extends XYChartViewer {
 
             String title = descriptor.getAspect().getLabel();
             IBarSeries series = (IBarSeries) set.createSeries(SeriesType.BAR, title);
-            series.setBarPadding(50);
 
-            fXSeries.put(iteratorX.next(), series);
-            fYSeries.put(descriptor, series);
+            getXSeries().put(checkNotNull(iteratorX.next()), checkNotNull(series));
+            getYSeries().put(descriptor, checkNotNull(series));
         }
     }
 
@@ -210,7 +209,7 @@ public class BarChart extends XYChartViewer {
     public void setSeriesColor() {
         Iterator<Color> colors = Iterators.cycle(COLORS);
 
-        for (ISeries series : getChart().getSeriesSet().getSeries()) {
+        for(ISeries series : getYSeries().values()) {
             ((IBarSeries) series).setBarColor(colors.next());
         }
     }
@@ -254,19 +253,19 @@ public class BarChart extends XYChartViewer {
                 data[j] = temp[j];
             }
 
-            checkNotNull(fYSeries.get(descriptor)).setYSeries(data);
+            checkNotNull(getYSeries().get(descriptor)).setYSeries(data);
         }
     }
 
     @Override
-    public void configureAxis() {
-        /* Format X axis */
+    public void configureAxes() {
+        /* Format X axes */
         Stream.of(getChart().getAxisSet().getXAxes()).forEach(cat -> cat.enableCategory(true));
 
-        /* Format Y axis */
+        /* Format Y axes */
         for(IAxis axis : getChart().getAxisSet().getYAxes()) {
             IAxisTick tick = axis.getTick();
-            tick.setFormat(getContinuousAxisFormatter(getData().getYData(), fXExternalRange, fXExternalRange));
+            tick.setFormat(getContinuousAxisFormatter(getData().getYData(), fYInternalRange, fYExternalRange));
         }
     }
 
@@ -299,7 +298,7 @@ public class BarChart extends XYChartViewer {
         /* Get the length and height of the longest label in pixels */
         Point pixels = gc.stringExtent(longestString);
 
-        /* Completely arbitrary */
+        // Completely arbitrary
         int cutLen = 5;
 
         String[] displayCategories = new String[fCategories.length];
