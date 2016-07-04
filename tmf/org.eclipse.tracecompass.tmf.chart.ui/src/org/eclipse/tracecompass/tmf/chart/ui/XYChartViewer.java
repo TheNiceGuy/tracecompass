@@ -111,6 +111,14 @@ public abstract class XYChartViewer implements IChartViewer {
      * Default decimal formatter
      */
     protected static final DecimalUnitFormat DECIMAL_FORMATTER = new ChartDecimalUnitFormat();
+    /**
+     * Symbol for seconds (used in the custom ns -> s conversion)
+     * */
+    private static final String SECONDS_SYMBOL = "s"; //$NON-NLS-1$
+    /**
+     * Symbol for nanoseconds (used in the custom ns -> s conversion)
+     * */
+    private static final String NANOSECONDS_SYMBOL = "ns"; //$NON-NLS-1$
 
     // ------------------------------------------------------------------------
     // Members
@@ -431,7 +439,7 @@ public abstract class XYChartViewer implements IChartViewer {
             }
 
             if(units != null) {
-                fXTitle = fXTitle + ' ' + '(' + units + ')';
+                fXTitle = fXTitle + ' ' + '(' + getUnit(units) + ')';
             }
         }
     }
@@ -471,11 +479,13 @@ public abstract class XYChartViewer implements IChartViewer {
 
             String units = null;
             if(nbDiffAspectsUnits == 1) {
-                units = fData.getXData().get(0).getAspect().getUnits();
+                units = fData.getYData().get(0).getAspect().getUnits();
             }
 
+            System.out.println(nbDiffAspectName + " " + nbDiffAspectsUnits);
+
             if(units != null) {
-                fYTitle = fYTitle + ' ' + '(' + units + ')';
+                fYTitle = fYTitle + ' ' + '(' + getUnit(units) + ')';
             }
 
             /* Put legend at the bottom */
@@ -584,6 +594,25 @@ public abstract class XYChartViewer implements IChartViewer {
         }
 
         return null;
+    }
+
+    /**
+     * Utils method to convert a unit into its SI base unit.
+     *
+     * @param base
+     *              the unit we want to retrieve the SI base
+     * @return the SI base unit
+     */
+    protected static String getUnit(String base) {
+        String unit;
+
+        if (NANOSECONDS_SYMBOL.equals(base)) {
+            unit = SECONDS_SYMBOL;
+        } else {
+            unit = base;
+        }
+
+        return unit;
     }
 
     /**
