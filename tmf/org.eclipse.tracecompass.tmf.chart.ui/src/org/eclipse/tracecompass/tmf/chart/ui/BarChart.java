@@ -171,7 +171,7 @@ public class BarChart extends XYChartViewer {
         }
 
         /* Make sure there is only one X axis */
-        if(getData().countDiffXData() > 1) {
+        if(countDiffAspects(getData().getXData()) > 1) {
             throw new IllegalArgumentException("Bar chart can only have one X axis."); //$NON-NLS-1$
         }
     }

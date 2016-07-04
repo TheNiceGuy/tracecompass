@@ -482,8 +482,6 @@ public abstract class XYChartViewer implements IChartViewer {
                 units = fData.getYData().get(0).getAspect().getUnits();
             }
 
-            System.out.println(nbDiffAspectName + " " + nbDiffAspectsUnits);
-
             if(units != null) {
                 fYTitle = fYTitle + ' ' + '(' + getUnit(units) + ')';
             }
@@ -598,6 +596,11 @@ public abstract class XYChartViewer implements IChartViewer {
 
     /**
      * Utils method to convert a unit into its SI base unit.
+     * <p>
+     * TODO: might be a great idea to have some kind of classes/interfaces
+     * that handle that kind of conversion. It would be more scalable than
+     * this simple util function which is hackish. They could be directly
+     * implemented into the aspects too, rather than using string.
      *
      * @param base
      *              the unit we want to retrieve the SI base
