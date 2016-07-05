@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2016 EfficiOS Inc., Alexandre Montplaisir
+ * Copyright (c) 2016 École Polytechnique de Montréal
  *
  * All rights reserved. This program and the accompanying materials are
  * made available under the terms of the Eclipse Public License v1.0 which
@@ -10,18 +10,28 @@ package org.eclipse.tracecompass.internal.tmf.chart.core.aspect;
 
 import org.eclipse.jdt.annotation.Nullable;
 
+/**
+ * Abstract class to represent the type of values a source may contains.
+ *
+ * @author Gabriel-Andrew Pollo-Guilbert
+ */
 public abstract class AbstractAspect {
-
+    /**
+     * Name of the aspect
+     */
     private final String fName;
+    /**
+     * Units of the aspect
+     */
     private final @Nullable String fUnits;
 
     /**
      * Constructor
      *
      * @param name
-     *            Aspect name, will be used as column name in the UI
+     *              Aspect name
      * @param units
-     *            The units of the value in this column
+     *              The units of the value in this column
      */
     protected AbstractAspect(String name, @Nullable String units) {
         fUnits = units;
@@ -62,8 +72,8 @@ public abstract class AbstractAspect {
     }
 
     /**
-     * Indicate if this aspect is numerical or not. This is used, among other
-     * things, to align the text in the table cells.
+     * Indicate if this aspect is numerical or not. This is used when we want to
+     * know if the source is numerical or not.
      *
      * @return If this aspect is numerical or not
      */
@@ -87,32 +97,4 @@ public abstract class AbstractAspect {
         return false;
     }
 
-//    /**
-//     * Resolve this aspect for the given entry.
-//     *
-//     * @param entry
-//     *            The table row
-//     * @return The string to display for the given cell
-//     */
-//    public abstract @Nullable String resolveString(TableEntry entry);
-//
-//    /**
-//     * Resolve this aspect double representation for the given entry
-//     *
-//     * Returned value does not matter if isNumerical() is false.
-//     *
-//     * @param entry
-//     *            The table row
-//     * @return The double value for the given cell
-//     */
-//    public abstract @Nullable Number resolveNumber(TableEntry entry);
-//
-//    /**
-//     * Get the comparator that should be used to compare this entry (or table
-//     * row) with the other rows in the table. This will be passed on to the
-//     * table's content provider.
-//     *
-//     * @return The entry comparator
-//     */
-//    public abstract @NonNull Comparator<@NonNull TableEntry> getComparator();
 }
