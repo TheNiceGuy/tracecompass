@@ -22,7 +22,7 @@ import org.eclipse.tracecompass.tmf.chart.ui.ScatterChart;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Base class for any chart.
+ * Base class and factory constructor for charts.
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
@@ -40,34 +40,22 @@ public interface IChartViewer {
                 );
 
     /**
-     * List of "light" colors (when unselected)
-     */
-    public static final List<@NonNull Color> LIGHT_COLORS = ImmutableList.of(
-                new Color(Display.getDefault(), 173, 195, 233),
-                new Color(Display.getDefault(), 199, 236, 197),
-                new Color(Display.getDefault(), 240, 196, 196),
-                new Color(Display.getDefault(), 231, 213, 237),
-                new Color(Display.getDefault(), 231, 222, 194),
-                new Color(Display.getDefault(), 220, 238, 246)
-                );
-
-    /**
      * Dispose the viewer widget.
      */
     void dispose();
 
     /**
-     * Factory method creates a chart from a data series
+     * Factory method to create a chart.
      *
      * @param parent
-     *              parent composite
+     *              Parent composite
      * @param data
-     *              configured data series for the chart
+     *              Configured data series for the chart
      * @param model
-     *              chart model to use
+     *              Chart model to use
      * @param title
-     *              title of the chart
-     * @return chart object
+     *              Title of the chart
+     * @return The chart object
      */
     static IChartViewer createChart(Composite parent, ChartData data, ChartModel model, String title) {
         switch (model.getChartType()) {

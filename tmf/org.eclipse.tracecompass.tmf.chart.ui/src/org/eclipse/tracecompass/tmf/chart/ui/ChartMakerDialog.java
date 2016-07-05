@@ -44,106 +44,71 @@ import org.eclipse.ui.dialogs.SelectionDialog;
 /**
  * This dialog is used to configure series before building a chart.
  *
- * TODO: restrict X axis selection
+ * TODO: restrict X axis selection, we could create a interface for
+ *       each chart type to implement
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
 public class ChartMakerDialog extends SelectionDialog {
 
+    // ------------------------------------------------------------------------
+    // Members
+    // ------------------------------------------------------------------------
+
+    /**
+     * Parent composite
+     */
     private Composite fComposite;
-
+    /**
+     * Combo list for selecting the data model
+     */
     private Combo fComboDataModel;
-
+    /**
+     * Combo list for selecting the chart type
+     */
     private Combo fComboChartType;
-
+    /**
+     * List for selecting the X axis
+     */
     private List fSelectionX;
-
+    /**
+     * Checkbox list for selecting the Y axis
+     */
     private CheckboxTableViewer fSelectionY;
-
+    /**
+     * Checkbox for indicating whether X axis is logarithmic
+     */
     private Button fXLogscale;
-
+    /**
+     * Checkbox for indicating whether Y axis is logarithmic
+     */
     private Button fYLogscale;
-
+    /**
+     * Filter reference to the first selected aspect in the Y list
+     */
     private AbstractAspect fAspectFilter;
-
+    /**
+     * Index of the currently selected data model
+     */
     private int fDataModelIndex;
-
+    /**
+     * Data series created after the dialog
+     */
     private @Nullable ChartData fDataSeries;
-
+    /**
+     * Data model created after the dialog
+     */
     private @Nullable ChartModel fChartModel;
 
-    private class ChartTypeSelectedEvent extends SelectionAdapter {
-        @Override
-        public void widgetSelected(SelectionEvent event) {
-            enableButton();
-        }
-    }
-
-    private class DataModelSelectedEvent extends SelectionAdapter {
-        @Override
-        public void widgetSelected(SelectionEvent event) {
-            fDataModelIndex = fComboDataModel.getSelectionIndex();
-            fAspectFilter = null;
-
-            populateX();
-            populateY();
-
-            enableButton();
-        }
-    }
-
-    private class ListSelectionEvent implements SelectionListener {
-        @Override
-        public void widgetSelected(SelectionEvent e) {
-            enableButton();
-            enableXLog();
-        }
-
-        @Override
-        public void widgetDefaultSelected(SelectionEvent e) {
-            enableButton();
-            enableXLog();
-        }
-    }
-
-    private class CheckBoxSelectedEvent implements ICheckStateListener {
-        @Override
-        public void checkStateChanged(CheckStateChangedEvent event) {
-            if(fSelectionY.getCheckedElements().length == 0) {
-                fAspectFilter = null;
-            } else if(fSelectionY.getCheckedElements().length == 1) {
-                if(!event.getChecked()) {
-                    enableYLog();
-                    return;
-                }
-
-                for(DataDescriptor descriptor : AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors()) {
-                    if(descriptor.getAspect().getLabel().equals(event.getElement())) {
-                        fAspectFilter = descriptor.getAspect();
-                        break;
-                    }
-                }
-            }
-
-            enableButton();
-            enableYLog();
-            populateY();
-        }
-    }
-
-    private class ResizeEvent implements Listener {
-        @Override
-        public void handleEvent(Event event) {
-            Rectangle rect = getShell().getClientArea();
-            Point size = fComposite.computeSize(rect.width, SWT.DEFAULT);
-            fComposite.setSize(size);
-        }
-    }
+    // ------------------------------------------------------------------------
+    // Important methods
+    // ------------------------------------------------------------------------
 
     /**
      * Constructor.
      *
-     * @param parent parent shell
+     * @param parent
+     *              Parent shell
      */
     public ChartMakerDialog(Shell parent) {
         super(parent);
@@ -284,6 +249,20 @@ public class ChartMakerDialog extends SelectionDialog {
         return fComposite;
     }
 
+    /**
+     * @return The configured data series
+     */
+    public @Nullable ChartData getDataSeries() {
+        return fDataSeries;
+    }
+
+    /**
+     * @return The configured chart model
+     */
+    public @Nullable ChartModel getChartModel() {
+        return fChartModel;
+    }
+
     @Override
     public void create() {
         super.create();
@@ -319,19 +298,9 @@ public class ChartMakerDialog extends SelectionDialog {
         super.okPressed();
     }
 
-    /**
-     * @return selected data series
-     */
-    public @Nullable ChartData getDataSeries() {
-        return fDataSeries;
-    }
-
-    /**
-     * @return selected chart model
-     */
-    public @Nullable ChartModel getChartModel() {
-        return fChartModel;
-    }
+    // ------------------------------------------------------------------------
+    // Util methods
+    // ------------------------------------------------------------------------
 
     private void enableButton() {
         if(fComboDataModel.getSelectionIndex() == -1 ||
@@ -389,5 +358,77 @@ public class ChartMakerDialog extends SelectionDialog {
         }
 
         fSelectionY.setInput(input);
+    }
+
+    // ------------------------------------------------------------------------
+    // Listeners
+    // ------------------------------------------------------------------------
+
+    private class ChartTypeSelectedEvent extends SelectionAdapter {
+        @Override
+        public void widgetSelected(SelectionEvent event) {
+            enableButton();
+        }
+    }
+
+    private class DataModelSelectedEvent extends SelectionAdapter {
+        @Override
+        public void widgetSelected(SelectionEvent event) {
+            fDataModelIndex = fComboDataModel.getSelectionIndex();
+            fAspectFilter = null;
+
+            populateX();
+            populateY();
+
+            enableButton();
+        }
+    }
+
+    private class ListSelectionEvent implements SelectionListener {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+            enableButton();
+            enableXLog();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {
+            enableButton();
+            enableXLog();
+        }
+    }
+
+    private class CheckBoxSelectedEvent implements ICheckStateListener {
+        @Override
+        public void checkStateChanged(CheckStateChangedEvent event) {
+            if(fSelectionY.getCheckedElements().length == 0) {
+                fAspectFilter = null;
+            } else if(fSelectionY.getCheckedElements().length == 1) {
+                if(!event.getChecked()) {
+                    enableYLog();
+                    return;
+                }
+
+                for(DataDescriptor descriptor : AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors()) {
+                    if(descriptor.getAspect().getLabel().equals(event.getElement())) {
+                        fAspectFilter = descriptor.getAspect();
+                        break;
+                    }
+                }
+            }
+
+            enableButton();
+            enableYLog();
+            populateY();
+        }
+    }
+
+    private class ResizeEvent implements Listener {
+        @Override
+        public void handleEvent(Event event) {
+            Rectangle rect = getShell().getClientArea();
+            Point size = fComposite.computeSize(rect.width, SWT.DEFAULT);
+            fComposite.setSize(size);
+        }
     }
 }

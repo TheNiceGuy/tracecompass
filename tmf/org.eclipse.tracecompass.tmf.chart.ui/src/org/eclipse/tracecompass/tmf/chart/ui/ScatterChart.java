@@ -144,6 +144,7 @@ public class ScatterChart extends XYChartViewer {
         Iterator<DataDescriptor> iteratorX = getData().getXData().iterator();
         Iterator<DataDescriptor> iteratorY = getData().getYData().iterator();
 
+        /* Create a series for each descriptors */
         while(iteratorX.hasNext()) {
             DataDescriptor descriptor = iteratorY.next();
 
@@ -391,8 +392,8 @@ public class ScatterChart extends XYChartViewer {
      * Util method used to create a copy of a bimap.
      *
      * @param reference
-     *              the map to copy
-     * @return a copy of the map
+     *              Map to copy
+     * @return A copy of the map
      */
     public static <K,V> BiMap<K,V> copyBiMap(BiMap<K,V> reference) {
         BiMap<K,V> copy = checkNotNull(HashBiMap.create());
@@ -409,9 +410,9 @@ public class ScatterChart extends XYChartViewer {
      * {@link #copyBiMap(BiMap)} except that it does not create a new map.
      *
      * @param reference
-     *              the reference map
+     *              Reference map
      * @param map
-     *              the map to modify
+     *              Map to modify
      */
     public static <K,V> void resetBiMap(BiMap<K,V> reference, BiMap<K,V> map) {
         for(Entry<K,V> entry : reference.entrySet()) {

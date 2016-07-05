@@ -57,8 +57,6 @@ import org.swtchart.ITitle;
 /**
  * Abstract class for XY charts.
  *
- * FIXME: value (s)
- *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
 public abstract class XYChartViewer implements IChartViewer {
@@ -72,7 +70,7 @@ public abstract class XYChartViewer implements IChartViewer {
      */
     protected static final String ELLIPSIS = "…"; //$NON-NLS-1$
     /**
-     *  Zero long value
+     * Zero long value
      */
     protected static final long ZERO_LONG = 0L;
     /**
@@ -80,7 +78,7 @@ public abstract class XYChartViewer implements IChartViewer {
      */
     protected static final double ZERO_DOUBLE = 0.0;
     /**
-     *  Maximum amount of digits that can be represented into a double
+     * Maximum amount of digits that can be represented into a double
      */
     private static final int BIG_DECIMAL_DIVISION_SCALE = 22;
     /**
@@ -197,13 +195,13 @@ public abstract class XYChartViewer implements IChartViewer {
      * Constructor.
      *
      * @param parent
-     *              parent composite
+     *              Parent composite
      * @param data
-     *              configured data series for the chart
+     *              Configured data series for the chart
      * @param model
-     *              chart model to use
+     *              Chart model to use
      * @param title
-     *              title of the chart
+     *              Title of the chart
      */
     public XYChartViewer(Composite parent, ChartData data, ChartModel model, @Nullable String title) {
         fParent = parent;
@@ -265,19 +263,18 @@ public abstract class XYChartViewer implements IChartViewer {
      * Surcharged constructor.
      *
      * @param parent
-     *              parent composite
+     *              Parent composite
      * @param data
-     *              configured data series for the chart
+     *              Configured data series for the chart
      * @param model
-     *              chart model to use
+     *              Chart model to use
      */
     public XYChartViewer(Composite parent, ChartData data, ChartModel model) {
         this(parent, data, model, null);
     }
 
     /**
-     * This method makes sure that the {@link ChartData}} is
-     * properly built for making XY charts.
+     * This method makes sure that the {@link ChartData}} is properly built for making XY charts.
      */
     protected void assertData() {
         if(getData().getXData().size() != getData().getYData().size()) {
@@ -418,7 +415,7 @@ public abstract class XYChartViewer implements IChartViewer {
     // ------------------------------------------------------------------------
 
     /**
-     * @return title of the chart
+     * @return The title of the chart
      */
     protected String getTitle() {
         if(fChartTitle == null) {
@@ -585,9 +582,8 @@ public abstract class XYChartViewer implements IChartViewer {
      * of data descriptors.
      *
      * @param descriptors
-     *              the list of data descriptors
-     * @return
-     *              the number of different aspects
+     *              List of data descriptors
+     * @return The number of different aspects
      */
     protected static long countDiffAspects(List<DataDescriptor> descriptors) {
         return descriptors.stream()
@@ -600,11 +596,10 @@ public abstract class XYChartViewer implements IChartViewer {
      * Util method to check if a list of data descriptors is all continuous.
      *
      * @param descriptors
-                    the list of data descriptors to check
-     * @return
-     *              true is all aspects are continuous,
-     *              false if all aspects are discontinuous or
-     *              null if it shares both continuity
+                    List of data descriptors to check
+     * @return {@code true} is all aspects are continuous,
+     *         {@code false} if all aspects are discontinuous or
+     *         {@code null} if it shares both continuity
      */
     protected static @Nullable Boolean areAspectsContinuous(List<DataDescriptor> descriptors) {
         long count = descriptors.stream()
@@ -628,8 +623,8 @@ public abstract class XYChartViewer implements IChartViewer {
      * implemented into the aspects too, rather than using string.
      *
      * @param base
-     *              the unit we want to retrieve the SI base
-     * @return the SI base unit
+     *              Unit we want to retrieve the SI base
+     * @return The SI base unit
      */
     protected static String getUnit(String base) {
         String unit;
@@ -647,9 +642,9 @@ public abstract class XYChartViewer implements IChartViewer {
      * Util method to create unique categories from a stream.
      *
      * @param stream
-     *              stream of string to generate labels from
+     *              Stream of string to generate labels from
      * @param map
-     *              map of categories to generate labels into
+     *              Map of categories to generate labels into
      */
     protected static void generateLabelMap(Stream<String> stream, Map<@Nullable String, @NonNull Integer> map) {
         stream.distinct().forEach(str -> map.putIfAbsent(str, map.size()));
@@ -662,11 +657,11 @@ public abstract class XYChartViewer implements IChartViewer {
      * instead of the smallest one.
      *
      * @param map
-     *              map of labels used to compute the minimum size required
+     *              Map of labels used to compute the minimum size required
      * @param tick
-     *              axis tick to update
+     *              Axis tick to update
      * @param availableLenghtPixel
-     *              available lenght in pixel
+     *              Available lenght in pixel
      */
     protected static void updateTickMark(Map<@Nullable String, Integer> map, IAxisTick tick, int availableLenghtPixel) {
         int nbLabels = Math.max(1, map.size());
@@ -686,10 +681,10 @@ public abstract class XYChartViewer implements IChartViewer {
      * is true, a positive minimum value will be clamped down to zero.
      *
      * @param descriptors
-     *            the data sources that the range will represent
+     *              The data sources that the range will represent
      * @param clampToZero
-     *            if true, a positive minimum value will be clamped down to zero
-     * @return the range
+     *              If true, a positive minimum value will be clamped down to zero
+     * @return The computed range
      */
     protected static ChartRange getRange(List<DataDescriptor> descriptors, boolean clampToZero) {
         /* Find the minimum and maximum values */
@@ -738,14 +733,12 @@ public abstract class XYChartViewer implements IChartViewer {
      * (internalRangeDelta / rawRangeDelta)) + internalMinimum
      *
      * @param number
-     *              the number to transform
+     *              The number to transform
      * @param internalRange
-     *              the internal range definition to be used
+     *              The internal range definition to be used
      * @param externalRange
-     *              the external range definition to be used
-     * @return
-     *              the transformed value in Double comprised inside the
-     *              internal range
+     *              The external range definition to be used
+     * @return The transformed value in Double comprised inside the internal range
      */
     protected static double getInternalDoubleValue(Number number, ChartRange internalRange, ChartRange externalRange) {
         BigDecimal value = new BigDecimal(number.toString());
@@ -771,12 +764,12 @@ public abstract class XYChartViewer implements IChartViewer {
      * Otherwise, return the generic decimal formatter.
      *
      * @param axisAspects
-     *              the list of aspects of the axis
+     *              The list of aspects of the axis
      * @param internalRange
-     *              the internal range for value transformation
+     *              The internal range for value transformation
      * @param externalRange
-     *              the external range for value transformation
-     * @return a formatter for the axis.
+     *              The external range for value transformation
+     * @return A formatter for the axis.
      */
     protected static Format getContinuousAxisFormatter(List<DataDescriptor> axisAspects, @Nullable ChartRange internalRange, @Nullable ChartRange externalRange) {
         Format formatter = DECIMAL_FORMATTER;
@@ -844,8 +837,8 @@ public abstract class XYChartViewer implements IChartViewer {
      * Util method to check if a list of aspects are all time stamps.
      *
      * @param descriptors
-     *              the list of aspects to check.
-     * @return true is all aspects are time stamps, otherwise false.
+     *              The list of aspects to check.
+     * @return {@code true} is all aspects are time stamps, otherwise {@code false}
      */
     protected static boolean areAspectsTimeStamp(List<DataDescriptor> descriptors) {
         return descriptors.stream().allMatch(aspect -> aspect.getAspect().isTimeStamp());
@@ -855,8 +848,8 @@ public abstract class XYChartViewer implements IChartViewer {
      * Util method to check if a list of aspects are all time durations.
      *
      * @param descriptors
-     *              the list of aspects to check.
-     * @return true is all aspects are time durations, otherwise false.
+     *              The list of aspects to check.
+     * @return {@code true} is all aspects are time durations, otherwise {@code false}
      */
     protected static boolean areAspectsTimeDuration(List<DataDescriptor> descriptors) {
         return descriptors.stream().allMatch(aspect -> aspect.getAspect().isTimeDuration());
@@ -867,42 +860,42 @@ public abstract class XYChartViewer implements IChartViewer {
     // ------------------------------------------------------------------------
 
     /**
-     * @return receiver's composite parent
+     * @return The receiver's composite parent
      */
     public Composite getParent() {
         return fParent;
     }
 
     /**
-     * @return receiver's chart
+     * @return The receiver's chart
      */
     public Chart getChart() {
         return fChart;
     }
 
     /**
-     * @return data to make a chart from
+     * @return The data to make a chart from
      */
     public ChartData getData() {
         return fData;
     }
 
     /**
-     * @return model to make a chart from
+     * @return The model to make a chart from
      */
     public ChartModel getModel() {
         return fModel;
     }
 
     /**
-     * @return maps between X series and data descriptors
+     * @return The maps between X series and data descriptors
      */
     public Map<@NonNull DataDescriptor, @NonNull ISeries> getXSeries() {
         return fXSeries;
     }
 
     /**
-     * @return maps between Y series and data descriptors
+     * @return The maps between Y series and data descriptors
      */
     public Map<@NonNull DataDescriptor, @NonNull ISeries> getYSeries() {
         return fYSeries;
@@ -912,7 +905,7 @@ public abstract class XYChartViewer implements IChartViewer {
      * This accessor return whether the X axis is continuous or not. If null
      * is returned, then the axis is both continuous and discontinuous.
      *
-     * @return boolean whether X axis is continuous or not
+     * @return A boolean indicating whether X axis is continuous or not
      */
     public @Nullable Boolean isXContinuous() {
         return fIsXContinuous;
@@ -922,7 +915,7 @@ public abstract class XYChartViewer implements IChartViewer {
      * This accessor return whether the Y axis is continuous or not. If null
      * is returned, then the axis is both continuous and discontinuous.
      *
-     * @return boolean whether Y axis is continuous or not
+     * @return A boolean indicating whether Y axis is continuous or not
      */
     public @Nullable Boolean isYContinuous() {
         return fIsYContinuous;
@@ -944,7 +937,7 @@ public abstract class XYChartViewer implements IChartViewer {
             /* Refresh the Axis labels to fit the current chart size */
             refreshDisplayLabels();
 
-            /* relocate the close button */
+            /* Relocate the close button */
             fCloseButton.setLocation(fChart.getSize().x-fCloseButton.getSize().x-5, 5);
         }
     }

@@ -222,6 +222,7 @@ public class BarChart extends XYChartViewer {
         Iterator<DataDescriptor> iteratorX = getData().getXData().iterator();
         Iterator<DataDescriptor> iteratorY = getData().getYData().iterator();
 
+        /* Create a series for each descriptors */
         while(iteratorX.hasNext()) {
             DataDescriptor descriptor = iteratorY.next();
 
@@ -348,7 +349,7 @@ public class BarChart extends XYChartViewer {
         /* Get the length and height of the longest label in pixels */
         Point pixels = gc.stringExtent(longestString);
 
-        // Completely arbitrary
+        /* Completely arbitrary */
         int cutLen = 5;
 
         String[] displayCategories = new String[fCategories.length];
