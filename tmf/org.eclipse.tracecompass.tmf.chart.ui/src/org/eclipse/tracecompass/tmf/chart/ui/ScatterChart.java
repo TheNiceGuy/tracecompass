@@ -71,8 +71,13 @@ public class ScatterChart extends XYChartViewer {
      * Map used for showing Y categories on the axis
      */
     private BiMap<@Nullable String, @NonNull Integer> fVisibleYMap;
-
+    /**
+     * Data generated for the X axis from the streams
+     */
     private Map<@NonNull ISeries, @NonNull Double[]> fXData;
+    /**
+     * Data generated for the Y axis from the streams
+     */
     private Map<@NonNull ISeries, @NonNull Double[]> fYData;
 
     // ------------------------------------------------------------------------

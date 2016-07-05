@@ -23,8 +23,8 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.TimestampAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.AbstractLongSource;
 import org.eclipse.tracecompass.internal.tmf.chart.core.source.IDataSource;
-import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
 import org.eclipse.tracecompass.internal.tmf.chart.core.source.IStringSource;
 
 /**
@@ -37,7 +37,11 @@ public class LamiResultTableDataModel extends AbstractDataModel {
 
     LamiResultTable fResultTable;
 
-    private final class LamiDataNumberSource implements INumericalSource {
+    private final class LamiDataNumberSource extends AbstractLongSource {
+
+        /**
+         *  FIXME: LAMI can send more than long values.
+         */
 
         LamiTableEntryAspect fAspect;
 

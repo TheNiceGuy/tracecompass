@@ -8,19 +8,27 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.tmf.chart.core.source;
 
-import java.util.stream.Stream;
-
-import org.eclipse.jdt.annotation.NonNull;
-import org.eclipse.jdt.annotation.Nullable;
-
 /**
- * This interface allows reading of string data.
+ * Abstract class implementing source of double values.
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
-public interface IStringSource extends IDataSource {
-    /**
-     * @return A stream of strings
-     */
-    @NonNull Stream<@Nullable String> getStreamString();
+public abstract class AbstractDoubleSource implements INumericalSource {
+    @Override
+    public <T extends Number> int compare(T a, T b) {
+        if(a == null && b == null) {
+            return 0;
+        }
+
+        if(a == null) {
+            return 1;
+        }
+
+        if(b == null) {
+            return -1;
+        }
+
+        return (int)(a.doubleValue()-b.doubleValue());
+    }
+
 }

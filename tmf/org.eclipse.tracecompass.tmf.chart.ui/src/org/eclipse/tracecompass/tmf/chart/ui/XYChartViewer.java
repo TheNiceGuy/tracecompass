@@ -41,7 +41,6 @@ import org.eclipse.tracecompass.common.core.format.DecimalUnitFormat;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartData;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.ChartModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
-import org.eclipse.tracecompass.internal.tmf.chart.core.module.NumberComparator;
 import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
 import org.eclipse.tracecompass.provisional.tmf.chart.ui.IChartViewer;
 import org.eclipse.tracecompass.tmf.chart.ui.format.ChartDecimalUnitFormat;
@@ -699,20 +698,19 @@ public abstract class XYChartViewer implements IChartViewer {
         BigDecimal current;
         Number num;
 
-        NumberComparator<Number> comparator = new NumberComparator<>();
         for(DataDescriptor descriptor : descriptors) {
             INumericalSource source = (INumericalSource) descriptor.getSource();
 
             num = source.getStreamNumber()
                     .filter(Objects::nonNull)
-                    .min(comparator::compare)
+                    .min(source::compare)
                     .orElse(Long.MAX_VALUE);
             current = new BigDecimal(checkNotNull(num).toString());
             min = current.min(min);
 
             num = source.getStreamNumber()
                     .filter(Objects::nonNull)
-                    .max(comparator::compare)
+                    .max(source::compare)
                     .orElse(Long.MIN_VALUE);
             current = new BigDecimal(checkNotNull(num).toString());
             max = current.max(min);
@@ -788,7 +786,6 @@ public abstract class XYChartViewer implements IChartViewer {
             BigDecimal max = new BigDecimal(Long.MIN_VALUE);
             BigDecimal min = new BigDecimal(Long.MAX_VALUE);
 
-            NumberComparator<Number> comparator = new NumberComparator<>();
             for (DataDescriptor descriptor : axisAspects) {
                 INumericalSource source = (INumericalSource) descriptor.getSource();
                 String value;
@@ -796,7 +793,7 @@ public abstract class XYChartViewer implements IChartViewer {
 
                 value = checkNotNull(source.getStreamNumber()
                         .filter(Objects::nonNull)
-                        .min(comparator::compare)
+                        .min(source::compare)
                         .orElse(Long.MAX_VALUE))
                         .toString();
                 current = new BigDecimal(value);
@@ -804,7 +801,7 @@ public abstract class XYChartViewer implements IChartViewer {
 
                 value = checkNotNull(source.getStreamNumber()
                         .filter(Objects::nonNull)
-                        .max(comparator::compare)
+                        .max(source::compare)
                         .orElse(Long.MIN_VALUE))
                         .toString();
                 current = new BigDecimal(value);

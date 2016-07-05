@@ -18,7 +18,7 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.DurationAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.TimestampAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
-import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.AbstractLongSource;
 
 /**
  * This is a simple {@link AbstractDataModel} implementation for
@@ -30,7 +30,7 @@ public class SegmentStoreDataModel extends AbstractDataModel {
 
     ISegmentStore<@NonNull ISegment> fSegmentStore;
 
-    private final class StartSource implements INumericalSource {
+    private final class StartSource extends AbstractLongSource {
         @Override
         public @NonNull Stream<@Nullable Number> getStreamNumber() {
             Stream<@Nullable Number> stream = fSegmentStore.stream()
@@ -39,7 +39,7 @@ public class SegmentStoreDataModel extends AbstractDataModel {
         }
     }
 
-    private final class EndSource implements INumericalSource {
+    private final class EndSource extends AbstractLongSource {
         @Override
         public @NonNull Stream<@Nullable Number> getStreamNumber() {
             Stream<@Nullable Number> stream = fSegmentStore.stream()
@@ -48,7 +48,7 @@ public class SegmentStoreDataModel extends AbstractDataModel {
         }
     }
 
-    private final class LengthSource implements INumericalSource {
+    private final class LengthSource extends AbstractLongSource {
         @Override
         public @NonNull Stream<@Nullable Number> getStreamNumber() {
             Stream<@Nullable Number> stream = fSegmentStore.stream()

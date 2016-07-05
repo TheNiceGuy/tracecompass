@@ -8,8 +8,8 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.analysis.timing.core.segmentstore.statistics;
 
-import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.allowNonNullContents;
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +22,8 @@ import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.IntAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
-import org.eclipse.tracecompass.internal.tmf.chart.core.source.INumericalSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.AbstractDoubleSource;
+import org.eclipse.tracecompass.internal.tmf.chart.core.source.AbstractLongSource;
 import org.eclipse.tracecompass.internal.tmf.chart.core.source.IStringSource;
 
 /**
@@ -43,16 +44,17 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
         }
     }
 
-    private final class MinimumSource implements INumericalSource {
+    private final class MinimumSource extends AbstractLongSource {
         @Override
         public @NonNull Stream<@Nullable Number> getStreamNumber() {
             Stream<@Nullable Number> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getMinSegment().getLength());
+
             return checkNotNull(stream);
         }
     }
 
-    private final class MaximumSource implements INumericalSource {
+    private final class MaximumSource extends AbstractLongSource {
         @Override
         public @NonNull Stream<@Nullable Number> getStreamNumber() {
             Stream<@Nullable Number> stream = fSegmentStats.values().stream()
@@ -61,7 +63,7 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
         }
     }
 
-    private final class AverageSource implements INumericalSource {
+    private final class AverageSource extends AbstractDoubleSource {
         @Override
         public @NonNull Stream<@Nullable Number> getStreamNumber() {
             Stream<@Nullable Number> stream = fSegmentStats.values().stream()
@@ -70,16 +72,22 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
         }
     }
 
-    private final class StandardDeviationSource implements INumericalSource {
+    private final class StandardDeviationSource extends AbstractDoubleSource {
         @Override
         public @NonNull Stream<@Nullable Number> getStreamNumber() {
             Stream<@Nullable Number> stream = fSegmentStats.values().stream()
-                    .map(segment -> segment.getStdDev());
+                    .map(segment -> segment.getStdDev())
+                    .map(num -> {
+                        if(Double.isNaN(num)) {
+                            return null;
+                        }
+                        return num;
+                    });
             return checkNotNull(stream);
         }
     }
 
-    private final class CountSource implements INumericalSource {
+    private final class CountSource extends AbstractLongSource {
         @Override
         public @NonNull Stream<@Nullable Number> getStreamNumber() {
             Stream<@Nullable Number> stream = fSegmentStats.values().stream()

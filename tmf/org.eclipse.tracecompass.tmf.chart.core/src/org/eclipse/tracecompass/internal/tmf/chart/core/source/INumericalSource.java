@@ -20,7 +20,20 @@ import org.eclipse.jdt.annotation.Nullable;
  */
 public interface INumericalSource extends IDataSource {
     /**
-     * @return stream of numbers
+     * @return A stream of numbers
      */
-    @NonNull Stream<@Nullable Number> getStreamNumber();
+    public abstract @NonNull Stream<@Nullable Number> getStreamNumber();
+
+    /**
+     * Method to compare two values inside the data stream.
+     *
+     * @param a
+     *              First value to compare
+     * @param b
+     *              Second value to compare
+     * @return A negative value is {@code a} is greater,
+     *         a positive value if {@code b} is greater or
+     *         a zero if they're equal
+     */
+    public abstract <T extends Number> int compare(T a, T b);
 }

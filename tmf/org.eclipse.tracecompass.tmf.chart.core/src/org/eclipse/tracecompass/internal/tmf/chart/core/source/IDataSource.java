@@ -13,18 +13,4 @@ package org.eclipse.tracecompass.internal.tmf.chart.core.source;
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
-public interface IDataSource {
-//    /**
-//     * @return stream of numbers
-//     */
-//    default @NonNull Stream<@NonNull Double> getStreamNumerical() {
-//        return checkNotNull(Stream.empty());
-//    }
-//
-//    /**
-//     * @return stream of strings
-//     */
-//    default @NonNull Stream<@NonNull String> getStreamString() {
-//        return checkNotNull(Stream.empty());
-//    }
-}
+public interface IDataSource {}

@@ -77,7 +77,9 @@ public class BarChart extends XYChartViewer {
      * Map reprensenting categories on the X axis
      */
     private String[] fCategories;
-
+    /**
+     * Data generated for the Y axis from the streams
+     */
     private Map<@NonNull ISeries, @NonNull Double[]> fYData;
 
     // ------------------------------------------------------------------------
@@ -263,29 +265,6 @@ public class BarChart extends XYChartViewer {
                     }).toArray(size -> new Double[size]);
 
             fYData.put(checkNotNull(getYSeries().get(descriptor)), data);
-
-//            data = new double[temp.length];
-//            for(int j = 0; j < temp.length; j++) {
-//                /* Null value for y is the same as zero */
-//                if(temp[j] == null) {
-//                    temp[j] = ZERO_DOUBLE;
-//                } else {
-//                    temp[j] = getInternalDoubleValue(temp[j], fYInternalRange, fYExternalRange);
-//                }
-//
-//                /*
-//                 * Less or equal to 0 values can't be plotted on a log
-//                 * scale. We map them to the mean of the >=0 minimal value
-//                 * and the calculated log scale magic epsilon.
-//                 */
-//                if(getModel().isYLogscale() && temp[j] <= ZERO_DOUBLE) {
-//                    temp[j] = (fMin + fLogScaleEpsilon)/2.0;
-//                }
-//
-//                data[j] = temp[j];
-//            }
-
-            //checkNotNull().setYSeries(data);
         }
     }
 
