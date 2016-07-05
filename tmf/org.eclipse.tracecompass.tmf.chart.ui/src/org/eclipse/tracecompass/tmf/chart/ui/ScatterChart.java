@@ -12,8 +12,10 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.eclipse.jdt.annotation.NonNull;
@@ -70,6 +72,9 @@ public class ScatterChart extends XYChartViewer {
      */
     private BiMap<@Nullable String, @NonNull Integer> fVisibleYMap;
 
+    private Map<@NonNull ISeries, @NonNull Double[]> fXData;
+    private Map<@NonNull ISeries, @NonNull Double[]> fYData;
+
     // ------------------------------------------------------------------------
     // Operations
     // ------------------------------------------------------------------------
@@ -91,6 +96,9 @@ public class ScatterChart extends XYChartViewer {
 
         fXMap = checkNotNull(HashBiMap.create());
         fYMap = checkNotNull(HashBiMap.create());
+
+        fXData = new HashMap<>();
+        fYData = new HashMap<>();
     }
 
     /**
@@ -154,49 +162,115 @@ public class ScatterChart extends XYChartViewer {
 
     @Override
     public void generateXData(List<DataDescriptor> descriptors) {
-        double[] data;
-
         for(DataDescriptor descriptor : descriptors) {
+            @NonNull Double[] data;
+
             if(descriptor.getAspect().isContinuous()) {
                 /* Generate data if the aspect is continuous */
                 data = ((INumericalSource) descriptor.getSource()).getStreamNumber()
-                        .mapToDouble(num -> num.doubleValue())
-                        .toArray();
+                        .map(num -> {
+                            if(num == null) {
+                                return null;
+                            }
+                            return getInternalDoubleValue(num, fXInternalRange, fXExternalRange);
+                        }).toArray(size -> new Double[size]);
             } else {
                 /* Generate unique position for each string */
                 generateLabelMap(((IStringSource) descriptor.getSource()).getStreamString(), fXMap);
 
                 data = ((IStringSource) descriptor.getSource()).getStreamString()
-                        .map(str -> checkNotNull(fXMap.get(str)))
-                        .mapToDouble(num -> (double) num)
-                        .toArray();
+                        .map(str -> new Double(checkNotNull(fXMap.get(str))))
+                        .toArray(size -> new Double[size]);
             }
 
-            checkNotNull(getXSeries().get(descriptor)).setXSeries(data);
+            fXData.put(checkNotNull(getXSeries().get(descriptor)), data);
         }
     }
 
     @Override
     public void generateYData(List<DataDescriptor> descriptors) {
-        double[] data;
-
         for(DataDescriptor descriptor : descriptors) {
+            @NonNull Double[] data;
+
             if(descriptor.getAspect().isContinuous()) {
                 /* Generate data if the aspect is continuous */
                 data = ((INumericalSource) descriptor.getSource()).getStreamNumber()
-                        .mapToDouble(num -> num.doubleValue())
-                        .toArray();
+                        .map(num -> {
+                            if(num == null) {
+                                return null;
+                            }
+                            return getInternalDoubleValue(num, fYInternalRange, fYExternalRange);
+                        }).toArray(size -> new Double[size]);
             } else {
                 /* Generate unique position for each string */
                 generateLabelMap(((IStringSource) descriptor.getSource()).getStreamString(), fYMap);
 
                 data = ((IStringSource) descriptor.getSource()).getStreamString()
-                        .map(str -> checkNotNull(fYMap.get(str)))
-                        .mapToDouble(num -> (double) num)
-                        .toArray();
+                        .map(str -> new Double(checkNotNull(fYMap.get(str))))
+                        .toArray(size -> new Double[size]);
             }
 
-            checkNotNull(getYSeries().get(descriptor)).setYSeries(data);
+            fYData.put(checkNotNull(getYSeries().get(descriptor)), data);
+        }
+    }
+
+    @Override
+    public void postProcessData() {
+        for(ISeries serie : getChart().getSeriesSet().getSeries()) {
+            Double[] xData = fXData.get(serie);
+            Double[] yData = fYData.get(serie);
+
+            /* Make sure an array way returned */
+            if(xData == null || yData == null) {
+                continue;
+            }
+
+            /* Make sure serie size matches */
+            if(xData.length != yData.length) {
+                throw new IllegalStateException("Series sizes don't match!"); //$NON-NLS-1$
+            }
+
+            /* Filter bad values */
+            Double[] xValid = new Double[xData.length];
+            Double[] yValid = new Double[yData.length];
+            int size = 0;
+            for(int i = 0; i < xData.length; i++) {
+                /* Reject tuple containing null values */
+                if(xData[i] == null || yData[i] == null) {
+                    continue;
+                }
+
+                /* X logscale cannot have negative values */
+                if(getModel().isXLogscale() && xData[i] <= 0) {
+                    continue;
+                }
+
+                /* Y logscale cannot have negative values */
+                if(getModel().isYLogscale() && yData[i] <= 0) {
+                    continue;
+                }
+
+                xValid[i] = xData[i];
+                yValid[i] = yData[i];
+                size++;
+            }
+
+            /* Generate final double values */
+            double[] xFinal = new double[size];
+            double[] yFinal = new double[size];
+            for(int i = size = 0; i < xValid.length; i++) {
+                if(xValid[i] == null || yValid[i] == null) {
+                    continue;
+                }
+
+                xFinal[size] = xValid[i];
+                yFinal[size] = yValid[i];
+                size++;
+            }
+
+            /* Configure the serie */
+            serie.setXSeries(xFinal);
+            serie.setYSeries(yFinal);
         }
     }
 

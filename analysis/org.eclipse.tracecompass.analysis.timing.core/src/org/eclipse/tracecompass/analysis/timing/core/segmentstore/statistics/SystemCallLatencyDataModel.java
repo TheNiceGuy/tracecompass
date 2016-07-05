@@ -9,6 +9,7 @@
 package org.eclipse.tracecompass.analysis.timing.core.segmentstore.statistics;
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
+import static org.eclipse.tracecompass.common.core.NonNullUtils.allowNonNullContents;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,16 +37,16 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
 
     private final class NameSource implements IStringSource {
         @Override
-        public @NonNull Stream<String> getStreamString() {
+        public @NonNull Stream<@Nullable String> getStreamString() {
             Stream<String> stream = fSegmentStats.keySet().stream();
-            return checkNotNull(stream);
+            return allowNonNullContents(stream);
         }
     }
 
     private final class MinimumSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Number> getStreamNumber() {
-            Stream<Number> stream = fSegmentStats.values().stream()
+        public @NonNull Stream<@Nullable Number> getStreamNumber() {
+            Stream<@Nullable Number> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getMinSegment().getLength());
             return checkNotNull(stream);
         }
@@ -53,8 +54,8 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
 
     private final class MaximumSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Number> getStreamNumber() {
-            Stream<Number> stream = fSegmentStats.values().stream()
+        public @NonNull Stream<@Nullable Number> getStreamNumber() {
+            Stream<@Nullable Number> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getMaxSegment().getLength());
             return checkNotNull(stream);
         }
@@ -62,8 +63,8 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
 
     private final class AverageSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Number> getStreamNumber() {
-            Stream<Number> stream = fSegmentStats.values().stream()
+        public @NonNull Stream<@Nullable Number> getStreamNumber() {
+            Stream<@Nullable Number> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getAverage());
             return checkNotNull(stream);
         }
@@ -71,8 +72,8 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
 
     private final class StandardDeviationSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Number> getStreamNumber() {
-            Stream<Number> stream = fSegmentStats.values().stream()
+        public @NonNull Stream<@Nullable Number> getStreamNumber() {
+            Stream<@Nullable Number> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getStdDev());
             return checkNotNull(stream);
         }
@@ -80,8 +81,8 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
 
     private final class CountSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Number> getStreamNumber() {
-            Stream<Number> stream = fSegmentStats.values().stream()
+        public @NonNull Stream<@Nullable Number> getStreamNumber() {
+            Stream<@Nullable Number> stream = fSegmentStats.values().stream()
                     .map(segment -> segment.getNbSegments());
             return checkNotNull(stream);
         }

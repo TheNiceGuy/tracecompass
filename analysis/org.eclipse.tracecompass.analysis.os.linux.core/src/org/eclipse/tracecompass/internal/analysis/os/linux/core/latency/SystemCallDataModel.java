@@ -13,6 +13,7 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
@@ -34,8 +35,8 @@ public class SystemCallDataModel extends SegmentStoreDataModel {
 
     private final class NameSource implements IStringSource {
         @Override
-        public @NonNull Stream<String> getStreamString() {
-            Stream<String> stream = fSegmentStore.stream()
+        public @NonNull Stream<@Nullable String> getStreamString() {
+            Stream<@Nullable String> stream = fSegmentStore.stream()
                     .map(segment -> ((SystemCall)segment).getName());
             return checkNotNull(stream);
         }

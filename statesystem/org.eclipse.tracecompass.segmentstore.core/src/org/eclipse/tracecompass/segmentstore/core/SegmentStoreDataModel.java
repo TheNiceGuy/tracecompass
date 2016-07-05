@@ -13,6 +13,7 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.DurationAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.TimestampAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
@@ -31,8 +32,8 @@ public class SegmentStoreDataModel extends AbstractDataModel {
 
     private final class StartSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Number> getStreamNumber() {
-            Stream<Number> stream = fSegmentStore.stream()
+        public @NonNull Stream<@Nullable Number> getStreamNumber() {
+            Stream<@Nullable Number> stream = fSegmentStore.stream()
                     .map(segment -> segment.getStart());
             return checkNotNull(stream);
         }
@@ -40,8 +41,8 @@ public class SegmentStoreDataModel extends AbstractDataModel {
 
     private final class EndSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Number> getStreamNumber() {
-            Stream<Number> stream = fSegmentStore.stream()
+        public @NonNull Stream<@Nullable Number> getStreamNumber() {
+            Stream<@Nullable Number> stream = fSegmentStore.stream()
                     .map(segment -> segment.getEnd());
             return checkNotNull(stream);
         }
@@ -49,8 +50,8 @@ public class SegmentStoreDataModel extends AbstractDataModel {
 
     private final class LengthSource implements INumericalSource {
         @Override
-        public @NonNull Stream<Number> getStreamNumber() {
-            Stream<Number> stream = fSegmentStore.stream()
+        public @NonNull Stream<@Nullable Number> getStreamNumber() {
+            Stream<@Nullable Number> stream = fSegmentStore.stream()
                     .map(segment -> segment.getLength());
             return checkNotNull(stream);
         }

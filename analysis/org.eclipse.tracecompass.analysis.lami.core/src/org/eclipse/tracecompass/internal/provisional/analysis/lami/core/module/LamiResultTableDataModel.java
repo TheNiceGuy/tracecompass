@@ -9,11 +9,11 @@
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module;
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
-import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNullContents;
 
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiEmptyAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.AbstractAspect;
@@ -46,10 +46,9 @@ public class LamiResultTableDataModel extends AbstractDataModel {
         }
 
         @Override
-        public @NonNull Stream<Number> getStreamNumber() {
-            Stream<Number> stream = fResultTable.getEntries().stream()
-                    .map(entry -> fAspect.resolveNumber(entry))
-                    .map(num -> checkNotNull(num));
+        public @NonNull Stream<@Nullable Number> getStreamNumber() {
+            Stream<@Nullable Number> stream = fResultTable.getEntries().stream()
+                    .map(entry -> fAspect.resolveNumber(entry));
             return checkNotNull(stream);
         }
     }
@@ -63,10 +62,9 @@ public class LamiResultTableDataModel extends AbstractDataModel {
         }
 
         @Override
-        public @NonNull Stream<String> getStreamString() {
-            Stream<String> stream = checkNotNullContents(fResultTable.getEntries().stream()
-                    .map(entry -> fAspect.resolveString(entry))
-                    .filter(num -> num != null));
+        public @NonNull Stream<@Nullable String> getStreamString() {
+            Stream<@Nullable String> stream = fResultTable.getEntries().stream()
+                    .map(entry -> fAspect.resolveString(entry));
             return checkNotNull(stream);
         }
     }

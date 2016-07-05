@@ -114,6 +114,34 @@ public final class NonNullUtils {
     }
 
     /**
+     * Allows a {@link Stream} to have null values. The following code yields
+     * a null type mismatch because we cannot convert a stream containing
+     * NonNull values into a stream containing Null values.
+     * <p>
+     * <pre><code>
+     *     String[] list = {"foo", "bar", null};
+     *     Stream<@NonNull String> sNN = checkNotNullContents(Stream.of(list));
+     *     Stream<@Nullable String> sN = sNN;
+     * </code></pre>
+     * <p>
+     *
+     * FIXME: better solutions would be appreciated
+     *
+     * @param stream
+     *            The stream to allow
+     * @return A stream with the same elements
+     * @throws NullPointerException
+     *             If the stream itself is null
+     * @since 2.0
+     */
+    public static <T> Stream<@Nullable T> allowNonNullContents(@Nullable Stream<@NonNull T> stream) {
+        if (stream == null) {
+            throw new NullPointerException();
+        }
+        return stream.map(t -> checkNotNull(t));
+    }
+
+    /**
      * Ensures an array does not contain any null elements.
      *
      * @param array

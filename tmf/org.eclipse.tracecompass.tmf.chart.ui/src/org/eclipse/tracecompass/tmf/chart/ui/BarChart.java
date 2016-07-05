@@ -13,10 +13,13 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
@@ -75,6 +78,8 @@ public class BarChart extends XYChartViewer {
      */
     private String[] fCategories;
 
+    private Map<@NonNull ISeries, @NonNull Double[]> fYData;
+
     // ------------------------------------------------------------------------
     // Operations
     // ------------------------------------------------------------------------
@@ -93,6 +98,8 @@ public class BarChart extends XYChartViewer {
      */
     public BarChart(Composite parent, ChartData data, ChartModel model, String title) {
         super(parent, data, model, title);
+
+        fYData = new HashMap<>();
 
         /* Enable categories */
         getChart().getAxisSet().getXAxis(0).enableCategory(true);
@@ -243,21 +250,68 @@ public class BarChart extends XYChartViewer {
 
     @Override
     public void generateYData(List<DataDescriptor> descriptors) {
-        double[] data;
-
         for(DataDescriptor descriptor : descriptors) {
-            /* Generate data if the aspect is continuous */
-            Double[] temp = ((INumericalSource) descriptor.getSource()).getStreamNumber()
-                    .map(num -> new Double(num.doubleValue()))
-                    .toArray(size -> new Double[size]);
+            @NonNull Double[] data;
 
-            data = new double[temp.length];
-            for(int j = 0; j < temp.length; j++) {
+            /* Generate data if the aspect is continuous */
+            data = ((INumericalSource) descriptor.getSource()).getStreamNumber()
+                    .map(num -> {
+                        if(num == null) {
+                            return null;
+                        }
+                        return new Double(num.doubleValue());
+                    }).toArray(size -> new Double[size]);
+
+            fYData.put(checkNotNull(getYSeries().get(descriptor)), data);
+
+//            data = new double[temp.length];
+//            for(int j = 0; j < temp.length; j++) {
+//                /* Null value for y is the same as zero */
+//                if(temp[j] == null) {
+//                    temp[j] = ZERO_DOUBLE;
+//                } else {
+//                    temp[j] = getInternalDoubleValue(temp[j], fYInternalRange, fYExternalRange);
+//                }
+//
+//                /*
+//                 * Less or equal to 0 values can't be plotted on a log
+//                 * scale. We map them to the mean of the >=0 minimal value
+//                 * and the calculated log scale magic epsilon.
+//                 */
+//                if(getModel().isYLogscale() && temp[j] <= ZERO_DOUBLE) {
+//                    temp[j] = (fMin + fLogScaleEpsilon)/2.0;
+//                }
+//
+//                data[j] = temp[j];
+//            }
+
+            //checkNotNull().setYSeries(data);
+        }
+    }
+
+    @Override
+    public void postProcessData() {
+        for(ISeries serie : getChart().getSeriesSet().getSeries()) {
+            Double[] yData = fYData.get(serie);
+
+            /* Make sure an array way returned */
+            if(yData == null) {
+                continue;
+            }
+
+            /* Make sure serie size matches */
+            if(fCategories.length != yData.length) {
+                throw new IllegalStateException("Series sizes don't match!"); //$NON-NLS-1$
+            }
+
+            /* Filter bad values */
+            double[] yValid = new double[yData.length];
+            for(int i = 0; i < fCategories.length; i++) {
                 /* Null value for y is the same as zero */
-                if(temp[j] == null) {
-                    temp[j] = ZERO_DOUBLE;
+                if(yData[i] == null) {
+                    yValid[i] = ZERO_DOUBLE;
                 } else {
-                    temp[j] = getInternalDoubleValue(temp[j], fYInternalRange, fYExternalRange);
+                    yValid[i] = getInternalDoubleValue(yData[i], fYInternalRange, fYExternalRange);
                 }
 
                 /*
@@ -265,14 +319,12 @@ public class BarChart extends XYChartViewer {
                  * scale. We map them to the mean of the >=0 minimal value
                  * and the calculated log scale magic epsilon.
                  */
-                if(getModel().isYLogscale() && temp[j] <= ZERO_DOUBLE) {
-                    temp[j] = (fMin + fLogScaleEpsilon)/2.0;
+                if(getModel().isYLogscale() && yValid[i] <= ZERO_DOUBLE) {
+                    yValid[i] = (fMin + fLogScaleEpsilon)/2.0;
                 }
-
-                data[j] = temp[j];
             }
 
-            checkNotNull(getYSeries().get(descriptor)).setYSeries(data);
+            serie.setYSeries(yValid);
         }
     }
 
