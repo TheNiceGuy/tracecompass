@@ -99,8 +99,10 @@ public class SystemCallLatencyDataModel extends AbstractDataModel {
     /**
      * Constructor.
      *
-     * @param name name of the analysis
-     * @param segmentStats statistics concerning the analysis
+     * @param name
+     *              Name of the analysis
+     * @param segmentStats
+     *              Statistics concerning the analysis
      */
     public SystemCallLatencyDataModel(String name, @Nullable Map<String, SegmentStoreStatistics> segmentStats) {
         super(name);

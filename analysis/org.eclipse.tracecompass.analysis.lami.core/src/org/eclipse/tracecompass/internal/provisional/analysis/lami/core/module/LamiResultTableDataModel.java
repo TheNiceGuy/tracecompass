@@ -74,8 +74,10 @@ public class LamiResultTableDataModel extends AbstractDataModel {
     }
 
     /**
-     * @param name name of the table
-     * @param resultTable result table from a LAMI analysis
+     * @param name
+     *              Name of the table
+     * @param resultTable
+     *              Result table from a LAMI analysis
      */
     public LamiResultTableDataModel(String name, LamiResultTable resultTable) {
         super(name);

@@ -43,8 +43,10 @@ public class SystemCallDataModel extends SegmentStoreDataModel {
     }
 
     /**
-     * @param name name of the analysis
-     * @param segmentStore segment store concerning the system call analysis
+     * @param name
+     *              Name of the analysis
+     * @param segmentStore
+     *              Segment store concerning the system call analysis
      */
     public SystemCallDataModel(String name, ISegmentStore<ISegment> segmentStore) {
         super(name, segmentStore);
