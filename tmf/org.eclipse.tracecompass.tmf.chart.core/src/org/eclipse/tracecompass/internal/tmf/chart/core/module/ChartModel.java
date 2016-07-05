@@ -34,16 +34,26 @@ public class ChartModel {
          */
         PIE_CHART(Messages.ChartModel_EnumPieChart);
 
+
+        /**
+         * Name of the chart type, used in dialog
+         */
         private String fName;
 
+        /**
+         * Constructor.
+         *
+         * @param name
+         *              Name of the chart type
+         */
         private ChartType(String name) {
             fName = name;
         }
 
         /**
          * @param name
-         *              name of the chart type
-         * @return chart type
+         *                  Name of the chart type
+         * @return The chart type
          */
         public static @Nullable ChartType resolveChartType(String name) {
             if(name.equals(BAR_CHART.fName)) {
@@ -63,19 +73,28 @@ public class ChartModel {
         }
     }
 
+    /**
+     * Type of chart to plot
+     */
     private final ChartType fType;
+    /**
+     * Indicates wheter the X axis is logarithmic
+     */
     private boolean fXLogscale;
+    /**
+     * Indicates wheter the Y axis is logarithmic
+     */
     private boolean fYLogscale;
 
     /**
      * Constructor.
      *
      * @param type
-     *              chart type
+     *              Chart type
      * @param xlog
-     *              whether X axis is logarithmic
+     *              Whether X axis is logarithmic
      * @param ylog
-     *              whether Y axis is logarithmic
+     *              Whether Y axis is logarithmic
      */
     public ChartModel(ChartType type, boolean xlog, boolean ylog) {
         fType = type;
@@ -84,21 +103,21 @@ public class ChartModel {
     }
 
     /**
-     * @return chart type
+     * @return The chart type
      */
     public ChartType getChartType() {
         return fType;
     }
 
     /**
-     * @return whether X axis is logarithmic
+     * @return Whether X axis is logarithmic
      */
     public boolean isXLogscale() {
         return fXLogscale;
     }
 
     /**
-     * @return whether Y axis is logarithmic
+     * @return Whether Y axis is logarithmic
      */
     public boolean isYLogscale() {
         return fYLogscale;

@@ -17,16 +17,22 @@ import java.util.List;
  * @author Gabriel-Andrew Pollo-Guilbert
  */
 public class ChartData {
+    /**
+     * List of data descriptors for the X axis
+     */
     private List<DataDescriptor> fXData;
+    /**
+     * List of data descriptors for the Y axis
+     */
     private List<DataDescriptor> fYData;
 
     /**
      * Constructor.
      *
      * @param xData
-     *              data descriptor for the X axis
+     *              Data descriptors for the X axis
      * @param yData
-     *              data descriptors for the Y axis
+     *              Data descriptors for the Y axis
      */
     public ChartData(List<DataDescriptor> xData, List<DataDescriptor> yData) {
         fXData = new ArrayList<>();
@@ -42,14 +48,14 @@ public class ChartData {
     }
 
     /**
-     * @return data descriptor for the X axis
+     * @return List of data descriptor for the X axis
      */
     public List<DataDescriptor> getXData() {
         return fXData;
     }
 
     /**
-     * @return data descriptors for the Y axis
+     * @return List of data descriptor for the Y axis
      */
     public List<DataDescriptor> getYData() {
         return fYData;

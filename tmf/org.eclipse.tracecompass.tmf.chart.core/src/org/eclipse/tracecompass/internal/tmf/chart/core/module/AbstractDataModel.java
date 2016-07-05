@@ -14,26 +14,38 @@ import java.util.List;
 
 /**
  * This is a basic interface in order to allow data from various analyses
- * to work with the chart plugin. Each aspect correspond to a source.
+ * to work with the chart plugin. Each aspect corresponds to a source.
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
 public abstract class AbstractDataModel {
-
-    private static List<AbstractDataModel> fInstances = new ArrayList<>();
-
-    private String fName;
-
-    private List<DataDescriptor> fDataDescriptors;
-
     /**
-     * TODO: destroy instances
+     * List of data model available
      */
+    private static List<AbstractDataModel> fInstances = new ArrayList<>();
+    /**
+     * @return Collection of instances
+     */
+    static public List<AbstractDataModel> getInstances() {
+        return Collections.unmodifiableList(fInstances);
+    }
+    /* ^                                                              ^
+     * | FIXME: the static member/method are used for testing purpose |
+     */
+    /**
+     * Name of the data model, it is used as the title of the graph
+     */
+    private String fName;
+    /**
+     * List of data descriptors for accessing streams
+     */
+    private List<DataDescriptor> fDataDescriptors;
 
     /**
      * Default constructor
      *
-     * @param name of the data model
+     * @param name
+     *              Name of the data model
      */
     public AbstractDataModel(String name) {
         fName = name;
@@ -42,23 +54,16 @@ public abstract class AbstractDataModel {
     }
 
     /**
-     * @return name of the data model
+     * @return The name of the data model
      */
     public String getName() {
         return fName;
     }
 
     /**
-     * @return aspects list of the data model
+     * @return Aspects list of the data model
      */
     public List<DataDescriptor> getDataDescriptors() {
         return fDataDescriptors;
-    }
-
-    /**
-     * @return collection of instances
-     */
-    static public List<AbstractDataModel> getInstances() {
-        return Collections.unmodifiableList(fInstances);
     }
 }
