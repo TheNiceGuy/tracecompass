@@ -18,18 +18,17 @@ import java.math.BigDecimal;
  * @author Jonathan Rajotte-Julien
  */
 public class ChartRange {
-
     private final BigDecimal fMinimum;
     private final BigDecimal fMaximum;
     private final BigDecimal fRange;
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param minimum
-     *            The minimum value of the range
+     *               The minimum value of the range
      * @param maximum
-     *            The maximum value of the range
+     *               The maximum value of the range
      */
     public ChartRange(BigDecimal minimum, BigDecimal maximum) {
         fMinimum = minimum;
@@ -38,21 +37,21 @@ public class ChartRange {
     }
 
     /**
-     * @return the minimum value of the range
+     * @return The minimum value of the range
      */
     public BigDecimal getMinimum() {
         return fMinimum;
     }
 
     /**
-     * @return the maximum value of the range
+     * @return The maximum value of the range
      */
     public BigDecimal getMaximum() {
         return fMaximum;
     }
 
     /**
-     * @return the range delta
+     * @return The range delta
      */
     public BigDecimal getDelta() {
         return fRange;

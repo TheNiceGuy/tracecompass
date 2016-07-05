@@ -27,7 +27,6 @@ import org.eclipse.tracecompass.common.core.format.DecimalUnitFormat;
  */
 public class ChartDecimalUnitFormat extends DecimalUnitFormat {
 
-    /** Maximum amount of digits that can be represented into a double */
     private static final int BIG_DECIMAL_DIVISION_SCALE = 22;
 
     private static final long serialVersionUID = 977671266270661188L;
@@ -36,7 +35,7 @@ public class ChartDecimalUnitFormat extends DecimalUnitFormat {
     private @Nullable ChartRange fExternalRange = null;
 
     /**
-     * Default constructor
+     * Default constructor.
      */
     public ChartDecimalUnitFormat() {
         super();
@@ -46,10 +45,10 @@ public class ChartDecimalUnitFormat extends DecimalUnitFormat {
      * Constructor with internal and external ChartRange for scale transformation
      *
      * @param internalRange
-     *            The internal range used for graph representation
+     *              The internal range used for graph representation
      *
      * @param externalRange
-     *            The external (real value) range shown to the user
+     *              The external (real value) range shown to the user
      */
     public ChartDecimalUnitFormat(ChartRange internalRange, ChartRange externalRange) {
         super();
@@ -61,7 +60,7 @@ public class ChartDecimalUnitFormat extends DecimalUnitFormat {
      * Constructor with multiplication factor.
      *
      * @param factor
-     *            Multiplication factor to apply to the value
+     *              Multiplication factor to apply to the value
      */
     public ChartDecimalUnitFormat(double factor) {
         super(factor);
@@ -72,11 +71,11 @@ public class ChartDecimalUnitFormat extends DecimalUnitFormat {
      * ChartRange for scale transformation.
      *
      * @param factor
-     *            Multiplication factor to apply to the value
+                   Multiplication factor to apply to the value
      * @param internalRange
-     *            The internal range used for graph representation
+                   The internal range used for graph representation
      * @param externalRange
-     *            The external (real value) range shown to the user
+                   The external (real value) range shown to the user
      */
     public ChartDecimalUnitFormat(double factor, ChartRange internalRange, ChartRange externalRange) {
         super(factor);
@@ -85,7 +84,7 @@ public class ChartDecimalUnitFormat extends DecimalUnitFormat {
     }
 
     /**
-     * @return the internal range definition
+     * @return The internal range definition
      */
     public @Nullable ChartRange getInternalRange() {
         return fInternalRange;
@@ -93,14 +92,14 @@ public class ChartDecimalUnitFormat extends DecimalUnitFormat {
 
     /**
      * @param internalRange
-     *            The internal range definition to be used by the formatter
+     *               The internal range definition to be used by the formatter
      */
     public void setInternalRange(@Nullable ChartRange internalRange) {
         fInternalRange = internalRange;
     }
 
     /**
-     * @return the external range definition
+     * @return The external range definition
      */
     public @Nullable ChartRange getExternalRange() {
         return fExternalRange;
@@ -108,7 +107,7 @@ public class ChartDecimalUnitFormat extends DecimalUnitFormat {
 
     /**
      * @param externalRange
-     *            The external range definition to be used by the formatter
+     *               The external range definition to be used by the formatter
      */
     public void setExternalRange(@Nullable ChartRange externalRange) {
         fExternalRange = externalRange;

@@ -38,19 +38,19 @@ public class ChartTimeStampFormat extends Format {
     // ------------------------------------------------------------------------
 
     /**
-     * The default constructor
+     * Default constructor.
      */
     public ChartTimeStampFormat() {
         fFormat = checkNotNull(TmfTimestampFormat.getDefaulTimeFormat());
     }
 
     /**
-     * The base constructor
+     * The base constructor.
      *
      * @param internalRange
-     *            The internal range used for graph representation
+     *              The internal range used for graph representation
      * @param externalRange
-     *            The external (real value) range shown to the user
+     *              The external (real value) range shown to the user
      */
     public ChartTimeStampFormat(ChartRange internalRange, ChartRange externalRange) {
         fFormat = checkNotNull(TmfTimestampFormat.getDefaulTimeFormat());
@@ -59,24 +59,24 @@ public class ChartTimeStampFormat extends Format {
     }
 
     /**
-     * The normal constructor
+     * Constructor.
      *
      * @param pattern
-     *            The format pattern
+     *               The format pattern
      */
     public ChartTimeStampFormat(String pattern) {
         fFormat = new TmfTimestampFormat(pattern);
     }
 
     /**
-     * The normal constructor
+     * Constructor.
      *
      * @param pattern
-     *            the format pattern
+     *              The format pattern
      * @param internalRange
-     *            The internal range used for graph representation
+     *              The internal range used for graph representation
      * @param externalRange
-     *            The external (real value) range shown to the user
+     *              The external (real value) range shown to the user
      */
     public ChartTimeStampFormat(String pattern, ChartRange internalRange, ChartRange externalRange) {
         fFormat = new TmfTimestampFormat(pattern);
@@ -89,7 +89,7 @@ public class ChartTimeStampFormat extends Format {
     // ------------------------------------------------------------------------
 
     /**
-     * @return the internal range definition
+     * @return The internal range definition
      */
     public @Nullable ChartRange getInternalRange() {
         return fInternalRange;
@@ -97,14 +97,14 @@ public class ChartTimeStampFormat extends Format {
 
     /**
      * @param internalRange
-     *            The internal range definition to be used by the formatter
+     *              The internal range definition to be used by the formatter
      */
     public void setInternalRange(@Nullable ChartRange internalRange) {
         fInternalRange = internalRange;
     }
 
     /**
-     * @return the external range definition
+     * @return The external range definition
      */
     public @Nullable ChartRange getExternalRange() {
         return fExternalRange;
@@ -112,12 +112,11 @@ public class ChartTimeStampFormat extends Format {
 
     /**
      * @param externalRange
-     *            The external range definition to be used by the formatter
+     *              The external range definition to be used by the formatter
      */
     public void setExternalRange(@Nullable ChartRange externalRange) {
         fExternalRange = externalRange;
     }
-
 
     @Override
     public StringBuffer format(@Nullable Object obj, @Nullable StringBuffer toAppendTo, @Nullable FieldPosition pos) {
@@ -150,5 +149,4 @@ public class ChartTimeStampFormat extends Format {
     public @Nullable Object parseObject(@Nullable String source, @Nullable ParsePosition pos) {
         return null;
     }
-
 }

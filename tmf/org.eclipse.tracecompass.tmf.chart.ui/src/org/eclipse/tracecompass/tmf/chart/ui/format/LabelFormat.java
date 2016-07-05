@@ -20,6 +20,7 @@ import com.google.common.collect.BiMap;
  * Format label based on a given Map<String, Integer>
  *
  * @author Jonathan Rajotte-Julien
+ * @author Gabriel-Andrew Pollo-Guilbert
  */
 public class LabelFormat extends Format {
 
@@ -27,13 +28,14 @@ public class LabelFormat extends Format {
 
     private static final String SWTCHART_EMPTY_LABEL = " "; //$NON-NLS-1$
     private static final String UNKNOWN_REPRESENTATION = "?"; //$NON-NLS-1$
+
     private final BiMap<@Nullable String, Integer> fMap;
 
     /**
      * Constructor
      *
      * @param map
-     *            Map of indices to labels
+     *              Map of indices to labels
      */
     public LabelFormat(BiMap<@Nullable String, Integer> map) {
         super();
