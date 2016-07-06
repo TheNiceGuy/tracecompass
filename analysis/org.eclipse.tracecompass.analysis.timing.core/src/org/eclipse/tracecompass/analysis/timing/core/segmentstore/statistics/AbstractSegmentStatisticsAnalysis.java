@@ -17,6 +17,7 @@ import java.util.Map;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.ISegmentStoreProvider;
+import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.model.IDataChartProvider;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
@@ -29,9 +30,11 @@ import com.google.common.collect.ImmutableList;
 /**
  * Abstract analysis to build statistics data for a segment store
  *
+ * @param <T> The type of segments it provides
+ *
  * @author Jean-Christian Kouame
  */
-public abstract class AbstractSegmentStatisticsAnalysis extends TmfAbstractAnalysisModule {
+public abstract class AbstractSegmentStatisticsAnalysis<T> extends TmfAbstractAnalysisModule implements IDataChartProvider<T> {
 
     private @Nullable IAnalysisModule fSegmentStoreProviderModule;
 

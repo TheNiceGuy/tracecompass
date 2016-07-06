@@ -8,10 +8,15 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.internal.tmf.analysis.xml.core.pattern.stateprovider;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.ISegmentStoreProvider;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.statistics.AbstractSegmentStatisticsAnalysis;
+import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.descriptor.IDataChartDescriptor;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.model.TmfXmlPatternSegmentBuilder;
 import org.eclipse.tracecompass.internal.tmf.analysis.xml.core.segment.TmfXmlPatternSegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
@@ -23,7 +28,7 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
  *
  * @author Jean-Christian Kouame
  */
-public class XmlPatternLatencyStatisticsAnalysis extends AbstractSegmentStatisticsAnalysis {
+public class XmlPatternLatencyStatisticsAnalysis extends AbstractSegmentStatisticsAnalysis<Object> {
 
     private final @Nullable String fPatternAnalysisId;
 
@@ -50,4 +55,21 @@ public class XmlPatternLatencyStatisticsAnalysis extends AbstractSegmentStatisti
     protected @Nullable ISegmentStoreProvider getSegmentProviderAnalysis(@NonNull ITmfTrace trace) {
         return fPatternAnalysisId != null ? TmfTraceUtils.getAnalysisModuleOfClass(trace, XmlPatternAnalysis.class, fPatternAnalysisId) : null;
     }
+
+    @Override
+    public @NonNull Stream<@NonNull Object> getSource() {
+        /**
+         * TODO: Implement a data provider for the XML analyses.
+         */
+        return Stream.empty();
+    }
+
+    @Override
+    public @NonNull List<@NonNull IDataChartDescriptor<Object, ?>> getDataDescriptors() {
+        /**
+         * TODO: Implement a data provider for the XML analyses.
+         */
+        return new ArrayList<>();
+    }
+
 }
