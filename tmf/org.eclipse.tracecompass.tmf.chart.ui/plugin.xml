@@ -6,7 +6,7 @@
       <view
             class="org.eclipse.tracecompass.tmf.chart.ui.ChartView"
             id="org.eclipse.tracecompass.tmf.chart.ui.chartview"
-            name="ChartView"
+            name="Chart View"
             restorable="true">
       </view>
    </extension>

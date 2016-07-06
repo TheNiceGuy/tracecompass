@@ -1,9 +1,13 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: ui
-Bundle-SymbolicName: org.eclipse.tracecompass.tmf.chart.ui;singleton:=true
+Bundle-Name: %Bundle-Name
+Bundle-Vendor: %Bundle-Vendor
 Bundle-Version: 1.0.0.qualifier
+Bundle-Localization: plugin
+Bundle-SymbolicName: org.eclipse.tracecompass.tmf.chart.ui;singleton:=true
 Bundle-Activator: org.eclipse.tracecompass.internal.tmf.chart.ui.Activator
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
  org.eclipse.tracecompass.tmf.ui,
@@ -13,6 +17,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface,
  org.swtchart,
  com.google.guava,
- org.eclipse.tracecompass.common.core;bundle-version="2.0.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-ActivationPolicy: lazy
+ org.eclipse.tracecompass.common.core
+Export-Package: org.eclipse.tracecompass.internal.tmf.chart.ui,
+ org.eclipse.tracecompass.provisional.tmf.chart.ui,
+ org.eclipse.tracecompass.tmf.chart.ui,
+ org.eclipse.tracecompass.tmf.chart.ui.format
+

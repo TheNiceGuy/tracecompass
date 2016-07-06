@@ -1,13 +1,15 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Tests
-Bundle-SymbolicName: org.eclipse.tracecompass.tmf.chart.core.tests
+Bundle-Name: %Bundle-Name
+Bundle-Vendor: %Bundle-Vendor
 Bundle-Version: 1.0.0.qualifier
+Bundle-Localization: plugin
+Bundle-SymbolicName: org.eclipse.tracecompass.tmf.chart.core.tests;singleton:=true
 Bundle-Activator: org.eclipse.tracecompass.internal.tmf.chart.core.tests.Activator
+Bundle-ActivationPolicy: lazy
+Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.core.runtime,
  org.junit,
  org.eclipse.tracecompass.tmf.chart.core,
- org.eclipse.tracecompass.common.core;bundle-version="2.1.0"
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
-Bundle-ActivationPolicy: lazy
+ org.eclipse.tracecompass.common.core
 Import-Package: org.eclipse.ui.plugin
