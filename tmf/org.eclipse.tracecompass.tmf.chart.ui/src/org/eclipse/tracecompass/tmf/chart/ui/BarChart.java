@@ -95,11 +95,9 @@ public class BarChart extends XYChartViewer {
      *              configured data series for the chart
      * @param model
      *              chart model to use
-     * @param title
-     *              title of the chart
      */
-    public BarChart(Composite parent, ChartData data, ChartModel model, String title) {
-        super(parent, data, model, title);
+    public BarChart(Composite parent, ChartData data, ChartModel model) {
+        super(parent, data, model);
 
         fYData = new HashMap<>();
 
@@ -156,20 +154,6 @@ public class BarChart extends XYChartViewer {
             fLogScaleEpsilon = fMin - ((fMin * delta) / (LOGSCALE_EPSILON_FACTOR * fMax));
 
         }
-    }
-
-    /**
-     * Surcharged constructor.
-     *
-     * @param parent
-     *              parent composite
-     * @param data
-     *              configured data series for the chart
-     * @param model
-     *              chart model to use
-     */
-    public BarChart(Composite parent, ChartData data, ChartModel model) {
-        this(parent, data, model, null);
     }
 
     @Override

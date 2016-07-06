@@ -78,26 +78,33 @@ public class ChartModel {
      */
     private final ChartType fType;
     /**
+     * Title of the chart
+     */
+    private final String fTitle;
+    /**
      * Indicates wheter the X axis is logarithmic
      */
-    private boolean fXLogscale;
+    private final boolean fXLogscale;
     /**
      * Indicates wheter the Y axis is logarithmic
      */
-    private boolean fYLogscale;
+    private final boolean fYLogscale;
 
     /**
      * Constructor.
      *
      * @param type
      *              Chart type
+     * @param title
+     *              Title of the chart
      * @param xlog
      *              Whether X axis is logarithmic
      * @param ylog
      *              Whether Y axis is logarithmic
      */
-    public ChartModel(ChartType type, boolean xlog, boolean ylog) {
+    public ChartModel(ChartType type, String title, boolean xlog, boolean ylog) {
         fType = type;
+        fTitle = title;
         fXLogscale = xlog;
         fYLogscale = ylog;
     }
@@ -107,6 +114,13 @@ public class ChartModel {
      */
     public ChartType getChartType() {
         return fType;
+    }
+
+    /**
+     * @return The title of the chart
+     */
+    public String getTitle() {
+        return fTitle;
     }
 
     /**

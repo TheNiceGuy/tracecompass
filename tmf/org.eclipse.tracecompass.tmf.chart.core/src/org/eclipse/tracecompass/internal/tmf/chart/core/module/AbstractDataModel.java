@@ -33,9 +33,9 @@ public abstract class AbstractDataModel {
      * | FIXME: the static member/method are used for testing purpose |
      */
     /**
-     * Name of the data model, it is used as the title of the graph
+     * Title of the data model
      */
-    private String fName;
+    private String fTitle;
     /**
      * List of data descriptors for accessing streams
      */
@@ -48,7 +48,7 @@ public abstract class AbstractDataModel {
      *              Name of the data model
      */
     public AbstractDataModel(String name) {
-        fName = name;
+        fTitle = name;
         fDataDescriptors = new ArrayList<>();
         fInstances.add(this);
     }
@@ -56,8 +56,8 @@ public abstract class AbstractDataModel {
     /**
      * @return The name of the data model
      */
-    public String getName() {
-        return fName;
+    public String getTitle() {
+        return fTitle;
     }
 
     /**

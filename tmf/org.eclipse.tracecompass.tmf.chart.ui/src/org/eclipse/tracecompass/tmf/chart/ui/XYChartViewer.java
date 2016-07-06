@@ -131,10 +131,6 @@ public abstract class XYChartViewer implements IChartViewer {
      */
     private Button fCloseButton;
     /**
-     * Title of the chart
-     */
-    private String fChartTitle;
-    /**
      * SWT Chart object
      */
     private Chart fChart;
@@ -200,15 +196,11 @@ public abstract class XYChartViewer implements IChartViewer {
      *              Configured data series for the chart
      * @param model
      *              Chart model to use
-     * @param title
-     *              Title of the chart
      */
-    public XYChartViewer(Composite parent, ChartData data, ChartModel model, @Nullable String title) {
+    public XYChartViewer(Composite parent, ChartData data, ChartModel model) {
         fParent = parent;
         fData = data;
         fModel = model;
-        fChartTitle = title;
-
         fIsXContinuous = areAspectsContinuous(getData().getXData());
         fIsYContinuous = areAspectsContinuous(getData().getYData());
 
@@ -260,20 +252,6 @@ public abstract class XYChartViewer implements IChartViewer {
     }
 
     /**
-     * Surcharged constructor.
-     *
-     * @param parent
-     *              Parent composite
-     * @param data
-     *              Configured data series for the chart
-     * @param model
-     *              Chart model to use
-     */
-    public XYChartViewer(Composite parent, ChartData data, ChartModel model) {
-        this(parent, data, model, null);
-    }
-
-    /**
      * This method makes sure that the {@link ChartData}} is properly built for making XY charts.
      */
     protected void assertData() {
@@ -306,7 +284,7 @@ public abstract class XYChartViewer implements IChartViewer {
 
     /**
      * This method should be called after the constructor. Normally, the factory constructor
-     * {@link IChartViewer#createChart(Composite, ChartData, ChartModel, String)} handles that.
+     * {@link IChartViewer#createChart(Composite, ChartData, ChartModel)} handles that.
      */
     public void populate() {
         /* Create series */
@@ -418,11 +396,7 @@ public abstract class XYChartViewer implements IChartViewer {
      * @return The title of the chart
      */
     protected String getTitle() {
-        if(fChartTitle == null) {
-            return fXTitle + " vs. " + fYTitle; //$NON-NLS-1$
-        }
-
-        return fChartTitle;
+        return getModel().getTitle();
     }
 
     /**

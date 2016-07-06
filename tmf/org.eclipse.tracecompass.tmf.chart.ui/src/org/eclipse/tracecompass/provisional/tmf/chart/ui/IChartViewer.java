@@ -57,15 +57,15 @@ public interface IChartViewer {
      *              Title of the chart
      * @return The chart object
      */
-    static IChartViewer createChart(Composite parent, ChartData data, ChartModel model, String title) {
+    static IChartViewer createChart(Composite parent, ChartData data, ChartModel model) {
         switch (model.getChartType()) {
         case BAR_CHART:
-            BarChart barChart = new BarChart(parent, data, model, title);
+            BarChart barChart = new BarChart(parent, data, model);
             barChart.populate();
 
             return barChart;
         case SCATTER_CHART:
-            ScatterChart scatterChart = new ScatterChart(parent, data, model, title);
+            ScatterChart scatterChart = new ScatterChart(parent, data, model);
             scatterChart.populate();
 
             return scatterChart;

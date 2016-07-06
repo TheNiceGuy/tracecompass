@@ -200,7 +200,7 @@ public class ChartMakerDialog extends SelectionDialog {
         fComboDataModel.setLayoutData(selectorComboGridData);
         fComboDataModel.addSelectionListener(new DataModelSelectedEvent());
         AbstractDataModel.getInstances().stream()
-                .map(model -> model.getName())
+                .map(model -> model.getTitle())
                 .forEach(fComboDataModel::add);
 
         /*
@@ -273,6 +273,7 @@ public class ChartMakerDialog extends SelectionDialog {
     @Override
     public void okPressed() {
         java.util.List<DataDescriptor> descriptors = AbstractDataModel.getInstances().get(fDataModelIndex).getDataDescriptors();
+        String title = AbstractDataModel.getInstances().get(fDataModelIndex).getTitle();
 
         ChartModel.ChartType type = ChartModel.ChartType.resolveChartType(fComboChartType.getText());
         if(type == null) {
@@ -293,7 +294,7 @@ public class ChartMakerDialog extends SelectionDialog {
         }
 
         fDataSeries = new ChartData(xAxis, yAxis);
-        fChartModel = new ChartModel(type, fXLogscale.getSelection(), fYLogscale.getSelection());
+        fChartModel = new ChartModel(type, title, fXLogscale.getSelection(), fYLogscale.getSelection());
 
         super.okPressed();
     }
