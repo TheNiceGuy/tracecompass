@@ -15,7 +15,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public class Messages extends NLS {
 
-    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.internal.tmf.chart.core.module.messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.internal.tmf.chart.core.model.messages"; //$NON-NLS-1$
     /**
      * Title of a bar chart
      */

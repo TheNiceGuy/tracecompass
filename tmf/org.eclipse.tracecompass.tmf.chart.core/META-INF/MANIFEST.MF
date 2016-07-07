@@ -9,7 +9,8 @@ Bundle-Activator: org.eclipse.tracecompass.internal.tmf.chart.core.Activator
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Require-Bundle: org.eclipse.core.runtime,
- org.eclipse.tracecompass.common.core
+ org.eclipse.tracecompass.common.core,
+ com.google.guava
 Export-Package: org.eclipse.tracecompass.internal.tmf.chart.core;x-internal:=true,
  org.eclipse.tracecompass.internal.tmf.chart.core.model;x-internal:=true,
  org.eclipse.tracecompass.tmf.chart.core.aspect,
