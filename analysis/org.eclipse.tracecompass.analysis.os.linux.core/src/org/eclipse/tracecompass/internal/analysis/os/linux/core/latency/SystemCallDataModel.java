@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.AbstractAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.aspect.StringAspect;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.AbstractDataModel;
 import org.eclipse.tracecompass.internal.tmf.chart.core.module.DataDescriptor;
@@ -30,7 +31,9 @@ import org.eclipse.tracecompass.segmentstore.core.SegmentStoreDataModel;
  * @since 2.0
  */
 public class SystemCallDataModel extends SegmentStoreDataModel {
-
+    /**
+     * Segment store to read data from
+     */
     ISegmentStore<ISegment> fSegmentStore;
 
     private final class NameSource implements IStringSource {
@@ -53,6 +56,8 @@ public class SystemCallDataModel extends SegmentStoreDataModel {
 
         fSegmentStore = segmentStore;
 
-        getDataDescriptors().add(new DataDescriptor(new StringAspect(Messages.SegmentAspectName_SystemCall), new NameSource()));
+        AbstractAspect aspectSystemCall = new StringAspect(Messages.SegmentAspectName_SystemCall);
+
+        getDataDescriptors().add(new DataDescriptor(aspectSystemCall, new NameSource()));
     }
 }
