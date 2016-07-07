@@ -9,9 +9,27 @@
 
 package org.eclipse.tracecompass.internal.provisional.analysis.lami.core.module;
 
-import java.util.List;
+import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiEmptyAspect;
+import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.aspect.LamiTableEntryAspect;
 import org.eclipse.tracecompass.internal.provisional.analysis.lami.core.types.LamiTimeRange;
+import org.eclipse.tracecompass.tmf.chart.core.aspect.GenericDataChartDurationAspect;
+import org.eclipse.tracecompass.tmf.chart.core.aspect.GenericDataChartNumberAspect;
+import org.eclipse.tracecompass.tmf.chart.core.aspect.GenericDataChartStringAspect;
+import org.eclipse.tracecompass.tmf.chart.core.aspect.GenericDataChartTimestampAspect;
+import org.eclipse.tracecompass.tmf.chart.core.aspect.IDataChartAspect;
+import org.eclipse.tracecompass.tmf.chart.core.model.DataDescriptor;
+import org.eclipse.tracecompass.tmf.chart.core.model.IDataChartModel;
+import org.eclipse.tracecompass.tmf.chart.core.source.AbstractLongSource;
+import org.eclipse.tracecompass.tmf.chart.core.source.IDataSource;
+import org.eclipse.tracecompass.tmf.chart.core.source.IStringSource;
 
 import com.google.common.collect.ImmutableList;
 
@@ -20,11 +38,42 @@ import com.google.common.collect.ImmutableList;
  *
  * @author Alexandre Montplaisir
  */
-public class LamiResultTable {
+public class LamiResultTable implements IDataChartModel {
 
     private final LamiTimeRange fTimeRange;
     private final LamiTableClass fTableClass;
     private final List<LamiTableEntry> fEntries;
+    private List<DataDescriptor> fDescriptors;
+
+    private final class LamiDataNumberSource extends AbstractLongSource {
+        LamiTableEntryAspect fAspect;
+
+        public LamiDataNumberSource(LamiTableEntryAspect aspect) {
+            fAspect = aspect;
+        }
+
+        @Override
+        public @NonNull Stream<@Nullable Long> getStream() {
+            Stream<@Nullable Long> stream = getEntries().stream()
+                    .map(entry -> checkNotNull(fAspect.resolveNumber(entry)).longValue());
+            return checkNotNull(stream);
+        }
+    }
+
+    private final class LamiDataStringSource implements IStringSource {
+        LamiTableEntryAspect fAspect;
+
+        public LamiDataStringSource(LamiTableEntryAspect aspect) {
+            fAspect = aspect;
+        }
+
+        @Override
+        public @NonNull Stream<@Nullable String> getStream() {
+            Stream<@Nullable String> stream = getEntries().stream()
+                    .map(entry -> fAspect.resolveString(entry));
+            return checkNotNull(stream);
+        }
+    }
 
     /**
      * Construct a new table from its components.
@@ -42,6 +91,38 @@ public class LamiResultTable {
         fTimeRange = timeRange;
         fTableClass = tableClass;
         fEntries = ImmutableList.copyOf(entries);
+        fDescriptors = new ArrayList<>();
+
+        for(LamiTableEntryAspect aspect : getTableClass().getAspects()) {
+            if(aspect instanceof LamiEmptyAspect) {
+                continue;
+            }
+
+            IDataChartAspect newAspect;
+            IDataSource newSource;
+
+            if(aspect.isContinuous()) {
+                if(aspect.isTimeStamp()) {
+                    /* Create descriptors for timestamps */
+                    newAspect = new GenericDataChartTimestampAspect(aspect.getName());
+                    newSource = new LamiDataNumberSource(aspect);
+                } else if(aspect.isTimeDuration()) {
+                    /* Create descriptors for time durations */
+                    newAspect = new GenericDataChartDurationAspect(aspect.getName());
+                    newSource = new LamiDataNumberSource(aspect);
+                } else {
+                    /* Create descriptors for general numbers */
+                    newAspect = new GenericDataChartNumberAspect(aspect.getLabel());
+                    newSource = new LamiDataNumberSource(aspect);
+                }
+            } else {
+                /* Create descriptors for general strings */
+                newAspect = new GenericDataChartStringAspect(aspect.getLabel());
+                newSource = new LamiDataStringSource(aspect);
+            }
+
+            fDescriptors.add(new DataDescriptor(newAspect, newSource));
+        }
     }
 
     /**
@@ -69,5 +150,15 @@ public class LamiResultTable {
      */
     public List<LamiTableEntry> getEntries() {
         return fEntries;
+    }
+
+    @Override
+    public @NonNull String getTitle() {
+        return getTableClass().getTableTitle();
+    }
+
+    @Override
+    public List<DataDescriptor> getDataDescriptors() {
+        return fDescriptors;
     }
 }
