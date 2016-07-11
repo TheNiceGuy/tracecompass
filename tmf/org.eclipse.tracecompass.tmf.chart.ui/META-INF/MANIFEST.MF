@@ -13,6 +13,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jface,
  org.eclipse.tracecompass.common.core,
  org.eclipse.tracecompass.tmf.core,
- com.google.guava
+ com.google.guava,
+ org.eclipse.tracecompass.tmf.chart.core
 Export-Package: org.eclipse.tracecompass.internal.tmf.chart.ui;x-internal:=true,
+ org.eclipse.tracecompass.tmf.chart.ui,
  org.eclipse.tracecompass.tmf.chart.ui.format
