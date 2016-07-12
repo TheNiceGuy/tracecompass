@@ -64,9 +64,9 @@ public interface IChartViewer {
              * TODO
              */
         case SCATTER_CHART:
-            /**
-             * TODO
-             */
+            XYChartViewer scatter = new ScatterChart(parent, data, model);
+            scatter.populate();
+            return scatter;
         case PIE_CHART:
             /**
              * TODO
