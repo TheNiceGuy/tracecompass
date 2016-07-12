@@ -8,6 +8,7 @@
  *******************************************************************************/
 package org.eclipse.tracecompass.tmf.chart.core.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,5 +66,11 @@ public interface IDataChartModel {
      * @return Aspects list of the data model
      */
     List<DataDescriptor> getDataDescriptors();
+
+    static final List<IDataChartModel> fInstances = new ArrayList<>();
+
+    static List<IDataChartModel> getInstances() {
+        return fInstances;
+    }
 
 }

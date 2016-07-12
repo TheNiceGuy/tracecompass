@@ -134,6 +134,8 @@ public class SegmentStoreStatisticsDataModel implements IDataChartModel {
         fDescriptors.add(new DataDescriptor(aspectAverage, new AverageSource()));
         fDescriptors.add(new DataDescriptor(aspectStdDev, new StandardDeviationSource()));
         fDescriptors.add(new DataDescriptor(aspectCount, new CountSource()));
+
+        IDataChartModel.getInstances().add(this);
     }
 
     @Override

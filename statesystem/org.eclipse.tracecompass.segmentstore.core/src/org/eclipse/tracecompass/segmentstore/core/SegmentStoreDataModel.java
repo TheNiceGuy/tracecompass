@@ -88,6 +88,8 @@ public class SegmentStoreDataModel implements IDataChartModel {
         fDescriptors.add(new DataDescriptor(aspectStart, new StartSource()));
         fDescriptors.add(new DataDescriptor(aspectEnd, new EndSource()));
         fDescriptors.add(new DataDescriptor(aspectLength, new LengthSource()));
+
+        IDataChartModel.getInstances().add(this);
     }
 
     @Override

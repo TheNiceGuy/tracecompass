@@ -123,6 +123,8 @@ public class LamiResultTable implements IDataChartModel {
 
             fDescriptors.add(new DataDescriptor(newAspect, newSource));
         }
+
+        IDataChartModel.getInstances().add(this);
     }
 
     /**

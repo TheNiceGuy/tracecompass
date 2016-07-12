@@ -20,6 +20,7 @@ import java.util.Map.Entry;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.statistics.SegmentStoreStatistics;
+import org.eclipse.tracecompass.analysis.timing.core.segmentstore.statistics.SegmentStoreStatisticsDataModel;
 import org.eclipse.tracecompass.analysis.timing.ui.views.segmentstore.statistics.AbstractSegmentStoreStatisticsViewer;
 import org.eclipse.tracecompass.internal.analysis.os.linux.core.latency.statistics.SystemCallLatencyStatisticsAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.analysis.TmfAbstractAnalysisModule;
@@ -86,6 +87,7 @@ public class SystemCallLatencyStatisticsViewer extends AbstractSegmentStoreStati
 
             Map<String, SegmentStoreStatistics> perSyscallStats = module.getPerSegmentTypeStats();
             if (perSyscallStats != null) {
+                new SegmentStoreStatisticsDataModel("System Call Latency Statistics", "System Call", perSyscallStats);
                 for (Entry<String, SegmentStoreStatistics> statsEntry : perSyscallStats.entrySet()) {
                     syscalls.addChild(new SegmentStoreStatisticsEntry(statsEntry.getKey(), statsEntry.getValue()));
                 }
