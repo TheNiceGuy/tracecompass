@@ -60,9 +60,9 @@ public interface IChartViewer {
     static @Nullable IChartViewer createChart(Composite parent, ChartData data, ChartModel model) {
         switch (model.getChartType()) {
         case BAR_CHART:
-            /**
-             * TODO
-             */
+            XYChartViewer bar = new BarChart(parent, data, model);
+            bar.populate();
+            return bar;
         case SCATTER_CHART:
             XYChartViewer scatter = new ScatterChart(parent, data, model);
             scatter.populate();
