@@ -46,16 +46,18 @@ public class ChartView extends TmfView {
                     return;
                 }
 
-                ChartMakerDialog maker = new ChartMakerDialog(checkNotNull(parent.getShell()));
-
+                org.eclipse.tracecompass.tmf.chart.ui.dialog.ChartMakerDialog maker =
+                        new org.eclipse.tracecompass.tmf.chart.ui.dialog.ChartMakerDialog(checkNotNull(parent.getShell()), IDataChartModel.getInstances().get(0));
                 maker.open();
-                ChartData chartData = maker.getDataSeries();
-                ChartModel chartModel = maker.getChartModel();
-                if (chartData == null || chartModel == null) {
-                    return;
-                }
 
-                IChartViewer.createChart(sashForm, chartData, chartModel);
+//                maker.open();
+//                ChartData chartData = maker.getDataSeries();
+//                ChartModel chartModel = maker.getChartModel();
+//                if (chartData == null || chartModel == null) {
+//                    return;
+//                }
+//
+//                IChartViewer.createChart(sashForm, chartData, chartModel);
             }
 
             @Override
