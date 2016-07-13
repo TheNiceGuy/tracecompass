@@ -28,14 +28,14 @@ public class ChartSeries {
     /**
      * Constructor.
      *
-     * @param x
+     * @param descriptorX
      *            The X data descriptor
-     * @param y
+     * @param descriptorY
      *            The Y data descriptor
      */
-    public ChartSeries(DataDescriptor x, DataDescriptor y) {
-        fXDescriptor = x;
-        fYDescriptor = y;
+    public ChartSeries(DataDescriptor descriptorX, DataDescriptor descriptorY) {
+        fXDescriptor = descriptorX;
+        fYDescriptor = descriptorY;
     }
 
     /**

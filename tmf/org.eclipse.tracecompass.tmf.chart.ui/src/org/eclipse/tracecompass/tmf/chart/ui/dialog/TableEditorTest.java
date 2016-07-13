@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -31,6 +32,7 @@ public class TableEditorTest {
 
         shell.setLayout(new FillLayout());
 
+
         TableViewer viewer = new TableViewer(shell);
         viewer.getTable().setHeaderVisible(true);
         viewer.getTable().setLinesVisible(true);
@@ -40,11 +42,11 @@ public class TableEditorTest {
         column.setText("First Name");
         column.setWidth(100);
         TableViewerColumn firstNameCol = new TableViewerColumn(viewer, column);
-        firstNameCol.setLabelProvider(new ColumnLabelProvider() {
+        firstNameCol.setLabelProvider(new ColumnLabelProvider(){
 
             @Override
-            public String getText(Object element) {
-                Person p = (Person) element;
+            public String getText(@Nullable Object element) {
+                Person p = (Person)element;
 
                 return p.getFirstName();
             }
@@ -55,45 +57,54 @@ public class TableEditorTest {
         column.setText("Last Name");
         column.setWidth(100);
         TableViewerColumn lastNameCol = new TableViewerColumn(viewer, column);
-        lastNameCol.setLabelProvider(new ColumnLabelProvider() {
+        lastNameCol.setLabelProvider(new ColumnLabelProvider(){
 
             @Override
-            public String getText(Object element) {
-                Person p = (Person) element;
+            public String getText(@Nullable Object element) {
+                Person p = (Person)element;
 
                 return p.getLastName();
             }
 
         });
 
+
+
+
         column = new TableColumn(viewer.getTable(), SWT.NONE);
         column.setText("Actions");
         column.setWidth(100);
         TableViewerColumn actionsNameCol = new TableViewerColumn(viewer, column);
-        actionsNameCol.setLabelProvider(new ColumnLabelProvider() {
-            // make sure you dispose these buttons when viewer input changes
+        actionsNameCol.setLabelProvider(new ColumnLabelProvider(){
+            //make sure you dispose these buttons when viewer input changes
             Map<Object, Button> buttons = new HashMap<>();
 
+
             @Override
-            public void update(ViewerCell cell) {
+            public void update(@Nullable ViewerCell cell) {
 
                 TableItem item = (TableItem) cell.getItem();
                 Button button;
-                if (buttons.containsKey(cell.getElement())) {
+                if(buttons.containsKey(cell.getElement()))
+                {
                     button = buttons.get(cell.getElement());
-                } else {
-                    button = new Button((Composite) cell.getViewerRow().getControl(), SWT.NONE);
+                }
+                else
+                {
+                     button = new Button((Composite) cell.getViewerRow().getControl(),SWT.NONE);
                     button.setText("Remove");
                     buttons.put(cell.getElement(), button);
                 }
                 TableEditor editor = new TableEditor(item.getParent());
-                editor.grabHorizontal = true;
+                editor.grabHorizontal  = true;
                 editor.grabVertical = true;
-                editor.setEditor(button, item, cell.getColumnIndex());
+                editor.setEditor(button , item, cell.getColumnIndex());
                 editor.layout();
             }
 
         });
+
+
 
         Person p1 = new Person();
         p1.setFirstName("George");
@@ -115,9 +126,11 @@ public class TableEditorTest {
         viewer.setInput(persons);
 
         shell.open();
-        while (!shell.isDisposed()) {
+        while(!shell.isDisposed())
+        {
 
-            if (!display.readAndDispatch()) {
+            if(!display.readAndDispatch())
+            {
                 display.sleep();
             }
         }
@@ -126,14 +139,13 @@ public class TableEditorTest {
 
     }
 
-    private static class Person {
+
+    private static class Person
+    {
 
         String firstName;
         String lastName;
 
-        Person() {
-
-        }
 
         public String getFirstName() {
             return firstName;
@@ -152,5 +164,6 @@ public class TableEditorTest {
         }
 
     }
+
 
 }

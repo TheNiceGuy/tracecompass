@@ -20,6 +20,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ColumnLabelProvider;
+import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
@@ -28,14 +29,11 @@ import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -45,6 +43,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.tracecompass.tmf.chart.core.aspect.IDataChartAspect;
 import org.eclipse.tracecompass.tmf.chart.core.model.ChartData;
 import org.eclipse.tracecompass.tmf.chart.core.model.ChartModel;
@@ -90,6 +89,8 @@ public class ChartMakerDialog extends SelectionDialog {
      * Checkbox list for selecting the Y axis
      */
     private CheckboxTableViewer fSelectionY;
+
+    private Button fAddButton;
     /**
      * Checkbox for indicating whether X axis is logarithmic
      */
@@ -109,7 +110,7 @@ public class ChartMakerDialog extends SelectionDialog {
 
     private @Nullable IChartType fType;
 
-    private List<ChartSeries> fSeries = new ArrayList<>();
+    private List<ChartSeriesDialog> fSeries = new ArrayList<>();
 
     private @Nullable IDataChartAspect fXAspectFilter;
 
@@ -133,10 +134,11 @@ public class ChartMakerDialog extends SelectionDialog {
         fComposite = parent;
         fDataModel = model;
         fTypeTable = new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER);
-        fSeriesTable = new TableViewer(parent, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
-
-        fSelectionX = new TableViewer(parent, SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER);
+        fSeriesTable = new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER);
+        fSelectionX = new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER);
         fSelectionY = checkNotNull(CheckboxTableViewer.newCheckList(parent, SWT.BORDER));
+        fAddButton = new Button(parent, SWT.NONE);
+
         fXLogscale = new Button(parent, SWT.CHECK);
         fYLogscale = new Button(parent, SWT.CHECK);
 
@@ -170,7 +172,7 @@ public class ChartMakerDialog extends SelectionDialog {
         typeGridData.verticalSpan = 3;
         typeGridData.horizontalAlignment = SWT.FILL;
         typeGridData.verticalAlignment = SWT.FILL;
-        typeGridData.grabExcessHorizontalSpace = true;
+        typeGridData.grabExcessHorizontalSpace = false;
         typeGridData.grabExcessVerticalSpace = true;
 
         TableViewerColumn typeColumn = new TableViewerColumn(fTypeTable, SWT.NONE);
@@ -201,14 +203,13 @@ public class ChartMakerDialog extends SelectionDialog {
         ySelectionColumn.setLabelProvider(new SeriesYLabelProvider());
 
         TableViewerColumn removeColumn = new TableViewerColumn(fSeriesTable, SWT.NONE);
-        removeColumn.getColumn().setWidth(10);
         removeColumn.getColumn().setResizable(false);
         removeColumn.setLabelProvider(new RemoveLabelProvider());
 
         TableColumnLayout seriesLayout = new TableColumnLayout();
-        seriesLayout.setColumnData(xSelectionColumn.getColumn(), new ColumnWeightData(50));
-        seriesLayout.setColumnData(ySelectionColumn.getColumn(), new ColumnWeightData(50));
-        seriesLayout.setColumnData(removeColumn.getColumn(), new ColumnWeightData(0));
+        seriesLayout.setColumnData(xSelectionColumn.getColumn(), new ColumnWeightData(47));
+        seriesLayout.setColumnData(ySelectionColumn.getColumn(), new ColumnWeightData(47));
+        seriesLayout.setColumnData(removeColumn.getColumn(), new ColumnPixelData(35));
 
         Group seriesGroup = new Group(fComposite, SWT.BORDER | SWT.FILL);
         seriesGroup.setText("Selected Series");
@@ -221,6 +222,7 @@ public class ChartMakerDialog extends SelectionDialog {
 
         fSeriesTable.getTable().setParent(seriesComposite);
         fSeriesTable.getTable().setHeaderVisible(true);
+        fSeriesTable.getTable().addListener(SWT.MeasureItem, new SeriesRowResize());
         fSeriesTable.setContentProvider(ArrayContentProvider.getInstance());
         fSeriesTable.setInput(fSeries);
 
@@ -264,6 +266,7 @@ public class ChartMakerDialog extends SelectionDialog {
         fSelectionX.setContentProvider(ArrayContentProvider.getInstance());
         fSelectionX.setInput(fDataModel.getDataDescriptors());
         fSelectionX.setFilters(new CreatorXFilter());
+        fSelectionX.addSelectionChangedListener(new CreatorXSelectedEvent());
 
         /* Y axis table */
         TableViewerColumn creatorYColumn = new TableViewerColumn(fSelectionY, SWT.NONE);
@@ -283,6 +286,7 @@ public class ChartMakerDialog extends SelectionDialog {
         fSelectionY.setFilters(new CreatorYFilter());
         fSelectionY.addCheckStateListener(new CreatorYSelectedEvent());
 
+        /* Add button */
         Label creatorLabelEmpty = new Label(creatorGroup, SWT.NONE);
         creatorLabelEmpty.setText(""); //$NON-NLS-1$
 
@@ -292,9 +296,10 @@ public class ChartMakerDialog extends SelectionDialog {
         creatorButtonGridData.heightHint = 30;
 
         Image addImage = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_OBJ_ADD);
-        Button creatorAddButton = new Button(creatorGroup, SWT.NONE);
-        creatorAddButton.setLayoutData(creatorButtonGridData);
-        creatorAddButton.setImage(addImage);
+        fAddButton.setParent(creatorGroup);
+        fAddButton.setLayoutData(creatorButtonGridData);
+        fAddButton.setImage(addImage);
+        fAddButton.addListener(SWT.Selection, new AddButtonClickedEvent());
 
         /*
          * Options
@@ -317,7 +322,7 @@ public class ChartMakerDialog extends SelectionDialog {
         fYLogscale.setParent(optionsGroup);
         fYLogscale.setText(Messages.ChartMakerDialog_LogScaleY);
 
-        this.getShell().addListener(SWT.Resize, new ResizeEvent());
+        getShell().setSize(800, 600);
 
         return fComposite;
     }
@@ -378,15 +383,26 @@ public class ChartMakerDialog extends SelectionDialog {
     // Util methods
     // ------------------------------------------------------------------------
 
-    private void enableButton() {
-        // if (fComboChartType.getSelectionIndex() == -1 ||
-        // fSelectionX.getSelectionIndex() == -1 ||
-        // fSelectionY.getCheckedElements().length == 0) {
-        // getButton(IDialogConstants.OK_ID).setEnabled(false);
-        // return;
-        // }
-        //
-        // getButton(IDialogConstants.OK_ID).setEnabled(true);
+    private boolean checkIfButtonReady() {
+        if (fSelectionX.getSelection().isEmpty()) {
+            return false;
+        }
+
+        if (fSelectionY.getCheckedElements().length == 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private boolean isSeriesPresent(ChartSeries test) {
+        for (ChartSeries series : fSeries) {
+            if (series.getX() == test.getX() && series.getY() == test.getY()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void enableXLog() {
@@ -413,17 +429,26 @@ public class ChartMakerDialog extends SelectionDialog {
     }
 
     // ------------------------------------------------------------------------
-    // Listeners
+    // Listeners, Providers, etc
     // ------------------------------------------------------------------------
 
-    private class ResizeEvent implements Listener {
-        @Override
-        public void handleEvent(@Nullable Event event) {
-            Rectangle rect = getShell().getClientArea();
-            Point size = fComposite.computeSize(rect.width, SWT.DEFAULT);
-            fComposite.setSize(size);
+    private class ChartSeriesDialog extends ChartSeries {
+
+        private @Nullable Button fButton;
+
+        private ChartSeriesDialog(DataDescriptor descriptorX, DataDescriptor descriptorY) {
+            super(descriptorX, descriptorY);
+        }
+
+        private @Nullable Button getButton() {
+            return fButton;
+        }
+
+        private void setButton(Button button) {
+            fButton = button;
         }
     }
+
 
     private class TypeLabelProvider extends ColumnLabelProvider {
         @Override
@@ -444,8 +469,16 @@ public class ChartMakerDialog extends SelectionDialog {
             IStructuredSelection selection = fTypeTable.getStructuredSelection();
             fType = (IChartType) selection.getFirstElement();
 
+            fSelectionX.getTable().deselectAll();
+            fSelectionY.getTable().deselectAll();
+
+            fXAspectFilter = null;
+            fYAspectFilter = null;
+
             fSelectionX.refresh();
             fSelectionY.refresh();
+
+            fAddButton.setEnabled(checkIfButtonReady());
         }
     }
 
@@ -467,11 +500,46 @@ public class ChartMakerDialog extends SelectionDialog {
 
     private class RemoveLabelProvider extends ColumnLabelProvider {
         @Override
-        public String getText(@Nullable Object element) {
-            /**
-             * TODO
-             */
-            return "I";
+        public @Nullable String getText(@Nullable Object element) {
+            return null;
+        }
+
+        @Override
+        public void update(@Nullable ViewerCell cell) {
+            if(cell == null) {
+                return;
+            }
+
+            /* Create a button if it doesn't exist */
+            ChartSeriesDialog series = (ChartSeriesDialog) cell.getViewerRow().getElement();
+            Button button;
+            if(series.getButton() == null) {
+                Image image = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_DELETE);
+                button = new Button((Composite) cell.getViewerRow().getControl(),SWT.NONE);
+                button.setImage(image);
+                series.setButton(button);
+            } else {
+                button = series.getButton();
+            }
+
+            /* Set the position of the button into the cell */
+            TableItem item = (TableItem) cell.getItem();
+            TableEditor editor = new TableEditor(item.getParent());
+            editor.grabHorizontal  = true;
+            editor.grabVertical = true;
+            editor.setEditor(button , item, cell.getColumnIndex());
+            editor.layout();
+        }
+    }
+
+    private class SeriesRowResize implements Listener {
+        @Override
+        public void handleEvent(@Nullable Event event) {
+            if(event == null) {
+                return;
+            }
+
+            event.height = 25;
         }
     }
 
@@ -511,10 +579,10 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
-    private class ChartTypeSelectedEvent extends SelectionAdapter {
+    private class CreatorXSelectedEvent implements ISelectionChangedListener {
         @Override
-        public void widgetSelected(@Nullable SelectionEvent event) {
-
+        public void selectionChanged(@Nullable SelectionChangedEvent event) {
+            fAddButton.setEnabled(checkIfButtonReady());
         }
     }
 
@@ -526,62 +594,37 @@ public class ChartMakerDialog extends SelectionDialog {
             }
 
             if (event.getChecked()) {
-                if(fYAspectFilter == null) {
+                if (fYAspectFilter == null) {
                     DataDescriptor descriptor = (DataDescriptor) event.getElement();
                     fYAspectFilter = descriptor.getAspect();
                 }
             } else {
-                if(fSelectionY.getCheckedElements().length == 0) {
+                if (fSelectionY.getCheckedElements().length == 0) {
                     fYAspectFilter = null;
                 }
             }
 
             fSelectionY.refresh();
+            fAddButton.setEnabled(checkIfButtonReady());
         }
     }
 
-    private class ListSelectionEvent implements SelectionListener {
+    private class AddButtonClickedEvent implements Listener {
         @Override
-        public void widgetSelected(@Nullable SelectionEvent e) {
-            enableButton();
-            enableXLog();
-        }
+        public void handleEvent(@Nullable Event event) {
+            DataDescriptor descriptorX = (DataDescriptor) checkNotNull(fSelectionX.getStructuredSelection().getFirstElement());
+            Object[] descriptorsY = fSelectionY.getCheckedElements();
 
-        @Override
-        public void widgetDefaultSelected(@Nullable SelectionEvent e) {
-            enableButton();
-            enableXLog();
-        }
-    }
+            for (int i = 0; i < descriptorsY.length; i++) {
+                DataDescriptor descriptorY = (DataDescriptor) descriptorsY[i];
+                ChartSeriesDialog series = new ChartSeriesDialog(descriptorX, checkNotNull(descriptorY));
 
-    private class CheckBoxSelectedEvent implements ICheckStateListener {
-        @Override
-        public void checkStateChanged(@Nullable CheckStateChangedEvent event) {
-            // if (event == null) {
-            // return;
-            // }
-            //
-            // if (fSelectionY.getCheckedElements().length == 0) {
-            // fAspectFilter = null;
-            // } else if (fSelectionY.getCheckedElements().length == 1) {
-            // if (!event.getChecked()) {
-            // enableYLog();
-            // return;
-            // }
-            //
-            // for (DataDescriptor descriptor :
-            // getInstance(fDataModelIndex).getDataDescriptors()) {
-            // if (descriptor.getAspect().getLabel().equals(event.getElement()))
-            // {
-            // fAspectFilter = descriptor.getAspect();
-            // break;
-            // }
-            // }
-            // }
-            //
-            // enableButton();
-            // enableYLog();
-            // populateY();
+                if (!isSeriesPresent(series)) {
+                    fSeries.add(series);
+                }
+            }
+
+            fSeriesTable.refresh();
         }
     }
 }
