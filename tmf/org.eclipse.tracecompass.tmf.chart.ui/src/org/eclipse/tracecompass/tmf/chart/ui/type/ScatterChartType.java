@@ -37,13 +37,31 @@ public class ScatterChartType implements IChartType {
     }
 
     @Override
-    public boolean filterX(IDataChartAspect aspect, @Nullable IDataChartAspect filter) {
+    public boolean checkIfXAspectValid(IDataChartAspect aspect, @Nullable IDataChartAspect filter) {
         return IChartType.filterSameAspect(aspect, filter);
     }
 
     @Override
-    public boolean filterY(IDataChartAspect aspect, @Nullable IDataChartAspect filter) {
+    public boolean checkIfYAspectValid(IDataChartAspect aspect, @Nullable IDataChartAspect filter) {
         return IChartType.filterSameAspect(aspect, filter);
+    }
+
+    @Override
+    public boolean checkIfXLogscalePossible(@Nullable IDataChartAspect filter) {
+        if(filter == null) {
+            return true;
+        }
+
+        return IChartType.checkIfNumerical(filter);
+    }
+
+    @Override
+    public boolean checkIfYLogscalePossible(@Nullable IDataChartAspect filter) {
+        if(filter == null) {
+            return true;
+        }
+
+        return IChartType.checkIfNumerical(filter);
     }
 
 }

@@ -61,10 +61,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.SelectionDialog;
 
 /**
- * This dialog is used to configure series before building a chart.
- *
- * TODO: restrict X axis selection, we could create a interface for each chart
- * type to implement
+ * This dialog is used for configurating series before making a chart.
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
@@ -78,21 +75,29 @@ public class ChartMakerDialog extends SelectionDialog {
      * Parent composite
      */
     private Composite fComposite;
-
+    /**
+     * Data model used for the creation of the chart
+     */
     private IDataChartModel fDataModel;
-
+    /**
+     * Table for displaying chart types
+     */
     private TableViewer fTypeTable;
-
+    /**
+     * Table for displaying series
+     */
     private TableViewer fSeriesTable;
     /**
-     * List for selecting the X axis
+     * Table for displaying valid X series
      */
     private TableViewer fSelectionX;
     /**
-     * Checkbox list for selecting the Y axis
+     * Checkbox table for displaying valid Y series
      */
     private CheckboxTableViewer fSelectionY;
-
+    /**
+     * Button used for creating a series
+     */
     private Button fAddButton;
     /**
      * Checkbox for indicating whether X axis is logarithmic
@@ -103,21 +108,29 @@ public class ChartMakerDialog extends SelectionDialog {
      */
     private Button fYLogscale;
     /**
-     * Data series created after the dialog
+     * Currently selected chart type
+     */
+    private @Nullable IChartType fType;
+    /**
+     * List of created series
+     */
+    private List<ChartSeriesDialog> fSeries = new ArrayList<>();
+    /**
+     * Aspect used for filtering X data descriptor
+     */
+    private @Nullable IDataChartAspect fXAspectFilter;
+    /**
+     * Aspect used for filtering Y data descriptor
+     */
+    private @Nullable IDataChartAspect fYAspectFilter;
+    /**
+     * Chart data created after the dialog
      */
     private @Nullable ChartData fDataSeries;
     /**
-     * Data model created after the dialog
+     * Chart model created after the dialog
      */
     private @Nullable ChartModel fChartModel;
-
-    private @Nullable IChartType fType;
-
-    private List<ChartSeriesDialog> fSeries = new ArrayList<>();
-
-    private @Nullable IDataChartAspect fXAspectFilter;
-
-    private @Nullable IDataChartAspect fYAspectFilter;
 
     // ------------------------------------------------------------------------
     // Important methods
@@ -136,12 +149,15 @@ public class ChartMakerDialog extends SelectionDialog {
 
         fComposite = parent;
         fDataModel = model;
+
+        /* Create tables */
         fTypeTable = new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER);
         fSeriesTable = new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER);
-        fSelectionX = new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER);
-        fSelectionY = checkNotNull(CheckboxTableViewer.newCheckList(parent, SWT.BORDER));
-        fAddButton = new Button(parent, SWT.NONE);
+        fSelectionX = new TableViewer(parent, SWT.FULL_SELECTION | SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL);
+        fSelectionY = checkNotNull(CheckboxTableViewer.newCheckList(parent, SWT.BORDER | SWT.NO_SCROLL | SWT.V_SCROLL));
 
+        /* Create buttons */
+        fAddButton = new Button(parent, SWT.NONE);
         fXLogscale = new Button(parent, SWT.CHECK);
         fYLogscale = new Button(parent, SWT.CHECK);
 
@@ -203,18 +219,21 @@ public class ChartMakerDialog extends SelectionDialog {
         TableViewerColumn dummyColumn = new TableViewerColumn(fSeriesTable, SWT.NONE);
         dummyColumn.setLabelProvider(new SeriesDummyLabelProvider());
 
+        /* X series column */
         TableViewerColumn xSelectionColumn = new TableViewerColumn(fSeriesTable, SWT.NONE);
         xSelectionColumn.getColumn().setText(Messages.ChartMakerDialog_XSeries);
         xSelectionColumn.getColumn().setAlignment(SWT.CENTER);
         xSelectionColumn.getColumn().setResizable(false);
         xSelectionColumn.setLabelProvider(new SeriesXLabelProvider());
 
+        /* Y series column */
         TableViewerColumn ySelectionColumn = new TableViewerColumn(fSeriesTable, SWT.NONE);
         ySelectionColumn.getColumn().setText(Messages.ChartMakerDialog_YSeries);
         ySelectionColumn.getColumn().setAlignment(SWT.CENTER);
         ySelectionColumn.getColumn().setResizable(false);
         ySelectionColumn.setLabelProvider(new SeriesYLabelProvider());
 
+        /* Remove buttons column */
         TableViewerColumn removeColumn = new TableViewerColumn(fSeriesTable, SWT.NONE);
         removeColumn.getColumn().setResizable(false);
         removeColumn.setLabelProvider(new SeriesRemoveLabelProvider());
@@ -223,7 +242,7 @@ public class ChartMakerDialog extends SelectionDialog {
         seriesLayout.setColumnData(dummyColumn.getColumn(), new ColumnPixelData(0));
         seriesLayout.setColumnData(xSelectionColumn.getColumn(), new ColumnWeightData(50));
         seriesLayout.setColumnData(ySelectionColumn.getColumn(), new ColumnWeightData(50));
-        seriesLayout.setColumnData(removeColumn.getColumn(), new ColumnPixelData(35));
+        seriesLayout.setColumnData(removeColumn.getColumn(), new ColumnPixelData(34));
 
         Group seriesGroup = new Group(fComposite, SWT.BORDER | SWT.FILL);
         seriesGroup.setText(Messages.ChartMakerDialog_SelectedSeries);
@@ -318,18 +337,20 @@ public class ChartMakerDialog extends SelectionDialog {
         /*
          * Options
          */
-        GridData configOptionsGridData = new GridData();
-        configOptionsGridData.horizontalAlignment = SWT.FILL;
-        configOptionsGridData.grabExcessHorizontalSpace = true;
 
         GridLayout optionsLayout = new GridLayout();
         optionsLayout.numColumns = 1;
+
+        GridData configOptionsGridData = new GridData();
+        configOptionsGridData.horizontalAlignment = SWT.FILL;
+        configOptionsGridData.grabExcessHorizontalSpace = true;
 
         Group optionsGroup = new Group(fComposite, SWT.BORDER);
         optionsGroup.setText(Messages.ChartMakerDialog_Options);
         optionsGroup.setLayout(optionsLayout);
         optionsGroup.setLayoutData(configOptionsGridData);
 
+        /* Checkboxes for logscale */
         fXLogscale.setParent(optionsGroup);
         fXLogscale.setText(Messages.ChartMakerDialog_LogScaleX);
 
@@ -399,11 +420,11 @@ public class ChartMakerDialog extends SelectionDialog {
 
     private boolean checkIfSeriesCompatible(IChartType typeA, IChartType typeB) {
         for (ChartSeries series : fSeries) {
-            if (typeA.filterX(series.getX().getAspect(), null) != typeB.filterX(series.getX().getAspect(), null)) {
+            if (typeA.checkIfXAspectValid(series.getX().getAspect(), null) != typeB.checkIfXAspectValid(series.getX().getAspect(), null)) {
                 return false;
             }
 
-            if (typeA.filterY(series.getY().getAspect(), null) != typeB.filterY(series.getY().getAspect(), null)) {
+            if (typeA.checkIfYAspectValid(series.getY().getAspect(), null) != typeB.checkIfYAspectValid(series.getY().getAspect(), null)) {
                 return false;
             }
         }
@@ -450,7 +471,7 @@ public class ChartMakerDialog extends SelectionDialog {
             ChartSeriesDialog series = checkNotNull(iterator.next());
 
             /* Check if the series if compatible */
-            if (!type.filterX(series.getX().getAspect(), null) || !type.filterY(series.getY().getAspect(), null)) {
+            if (!type.checkIfXAspectValid(series.getX().getAspect(), null) || !type.checkIfYAspectValid(series.getY().getAspect(), null)) {
                 /* Remove the button of the series */
                 Button button = series.getButton();
                 if (button != null) {
@@ -464,7 +485,38 @@ public class ChartMakerDialog extends SelectionDialog {
     }
 
     private void unselectIncompatibleSeries(IChartType type) {
+        /* Check if X selected series is compatible */
+        DataDescriptor descriptorX = (DataDescriptor) fSelectionX.getStructuredSelection().getFirstElement();
+        if (descriptorX != null && !type.checkIfXAspectValid(descriptorX.getAspect(), fXAspectFilter)) {
+            fSelectionX.getTable().deselectAll();
+        }
 
+        /* Check if Y selected series are compatible */
+        for (Object element : fSelectionY.getCheckedElements()) {
+            DataDescriptor descriptorY = (DataDescriptor) element;
+
+            if (!type.checkIfYAspectValid(descriptorY.getAspect(), fYAspectFilter)) {
+                fSelectionY.setChecked(element, false);
+            }
+        }
+    }
+
+    private void configureLogscaleCheckboxes() {
+        /* Enable X logscale checkbox if possible */
+        if (checkNotNull(fType).checkIfXLogscalePossible(fXAspectFilter)) {
+            fXLogscale.setEnabled(true);
+        } else {
+            fXLogscale.setEnabled(false);
+            fXLogscale.setSelection(false);
+        }
+
+        /* Enable Y logscale checkbox if possible */
+        if (checkNotNull(fType).checkIfYLogscalePossible(fYAspectFilter)) {
+            fYLogscale.setEnabled(true);
+        } else {
+            fYLogscale.setEnabled(false);
+            fYLogscale.setSelection(false);
+        }
     }
 
     private boolean tryResetXFilter() {
@@ -487,29 +539,6 @@ public class ChartMakerDialog extends SelectionDialog {
 
         fYAspectFilter = null;
         return true;
-    }
-
-    private void enableXLog() {
-        // int index = fSelectionX.getSelectionIndex();
-        //
-        // DataDescriptor descriptor =
-        // checkNotNull(getInstance(fDataModelIndex).getDataDescriptors().get(index));
-        // if (descriptor.getAspect() instanceof IDataChartNumericalAspect) {
-        // fXLogscale.setEnabled(true);
-        // } else {
-        // fXLogscale.setEnabled(false);
-        // fXLogscale.setSelection(false);
-        // }
-    }
-
-    private void enableYLog() {
-        // if (fAspectFilter != null && fAspectFilter instanceof
-        // IDataChartNumericalAspect) {
-        // fYLogscale.setEnabled(true);
-        // } else {
-        // fYLogscale.setEnabled(false);
-        // fYLogscale.setSelection(false);
-        // }
     }
 
     // ------------------------------------------------------------------------
@@ -561,12 +590,17 @@ public class ChartMakerDialog extends SelectionDialog {
             IStructuredSelection selection = fTypeTable.getStructuredSelection();
             IChartType type = (IChartType) selection.getFirstElement();
 
+            if (type == null) {
+                return;
+            }
+
             /* Check if the series are compatible with the chart type */
             if (fSeries.size() != 0 && !checkIfSeriesCompatible(checkNotNull(fType), type)) {
                 String warning = Messages.ChartMakerDialog_WarningConfirm;
                 String message = String.format(Messages.ChartMakerDialog_WarningIncompatibleSeries,
                         type.getType().toString().toLowerCase());
 
+                /* Ask the user if he wants to continue */
                 boolean choice = MessageDialog.openConfirm(fComposite.getShell(), warning, message);
                 if (!choice) {
                     fTypeTable.setSelection(new StructuredSelection(fType));
@@ -575,12 +609,12 @@ public class ChartMakerDialog extends SelectionDialog {
 
                 removeIncompatibleSeries(type);
                 fSeriesTable.refresh();
-
-                fSelectionX.getTable().deselectAll();
-                fSelectionY.setAllChecked(false);
             }
 
             fType = type;
+
+            /* Refresh controls */
+            unselectIncompatibleSeries(fType);
 
             if (tryResetXFilter()) {
                 fSelectionX.refresh();
@@ -591,7 +625,7 @@ public class ChartMakerDialog extends SelectionDialog {
             }
 
             fAddButton.setEnabled(checkIfButtonReady());
-
+            configureLogscaleCheckboxes();
         }
     }
 
@@ -677,13 +711,16 @@ public class ChartMakerDialog extends SelectionDialog {
                 return;
             }
 
+            /* Dispose the button of the series */
             Button button = (Button) checkNotNull(event.widget);
             button.dispose();
 
+            /* Remove the series from the list */
             ChartSeries series = findButtonOwner(button);
             fSeries.remove(series);
             fSeriesTable.refresh();
 
+            /* Refresh controls */
             tryResetXFilter();
             fSelectionX.refresh();
 
@@ -694,6 +731,8 @@ public class ChartMakerDialog extends SelectionDialog {
             if (fSeries.size() == 0) {
                 getButton(IDialogConstants.OK_ID).setEnabled(false);
             }
+
+            configureLogscaleCheckboxes();
         }
     }
 
@@ -707,7 +746,7 @@ public class ChartMakerDialog extends SelectionDialog {
                 return;
             }
 
-            event.height = 25;
+            event.height = 27;
         }
     }
 
@@ -735,7 +774,7 @@ public class ChartMakerDialog extends SelectionDialog {
             }
 
             DataDescriptor descriptor = checkNotNull((DataDescriptor) element);
-            return type.filterX(descriptor.getAspect(), fXAspectFilter);
+            return type.checkIfXAspectValid(descriptor.getAspect(), fXAspectFilter);
         }
     }
 
@@ -752,7 +791,7 @@ public class ChartMakerDialog extends SelectionDialog {
             }
 
             DataDescriptor descriptor = checkNotNull((DataDescriptor) element);
-            return type.filterY(descriptor.getAspect(), fYAspectFilter);
+            return type.checkIfYAspectValid(descriptor.getAspect(), fYAspectFilter);
         }
     }
 
@@ -763,6 +802,7 @@ public class ChartMakerDialog extends SelectionDialog {
     private class CreatorXSelectedEvent implements ISelectionChangedListener {
         @Override
         public void selectionChanged(@Nullable SelectionChangedEvent event) {
+            /* Enable button if possible */
             fAddButton.setEnabled(checkIfButtonReady());
         }
     }
@@ -778,6 +818,7 @@ public class ChartMakerDialog extends SelectionDialog {
                 return;
             }
 
+            /* Set Y filter if needed */
             if (event.getChecked()) {
                 if (fYAspectFilter == null) {
                     DataDescriptor descriptor = (DataDescriptor) event.getElement();
@@ -787,8 +828,11 @@ public class ChartMakerDialog extends SelectionDialog {
                 tryResetYFilter();
             }
 
+            /* Refresh controls */
             fSelectionY.refresh();
             fAddButton.setEnabled(checkIfButtonReady());
+
+            configureLogscaleCheckboxes();
         }
     }
 
@@ -817,12 +861,14 @@ public class ChartMakerDialog extends SelectionDialog {
                 fXAspectFilter = descriptorX.getAspect();
             }
 
-            /* Refresh tables */
+            /* Refresh controls */
             fSeriesTable.refresh();
             fSelectionX.refresh();
 
             /* Enable OK button */
             getButton(IDialogConstants.OK_ID).setEnabled(true);
+
+            configureLogscaleCheckboxes();
         }
     }
 }

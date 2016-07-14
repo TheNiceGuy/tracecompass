@@ -38,7 +38,7 @@ public class BarChartType implements IChartType {
     }
 
     @Override
-    public boolean filterX(IDataChartAspect aspect, @Nullable IDataChartAspect filter) {
+    public boolean checkIfXAspectValid(IDataChartAspect aspect, @Nullable IDataChartAspect filter) {
         if (aspect instanceof IDataChartNumericalAspect) {
             return false;
         }
@@ -47,12 +47,26 @@ public class BarChartType implements IChartType {
     }
 
     @Override
-    public boolean filterY(IDataChartAspect aspect, @Nullable IDataChartAspect filter) {
+    public boolean checkIfYAspectValid(IDataChartAspect aspect, @Nullable IDataChartAspect filter) {
         if (aspect instanceof GenericDataChartStringAspect) {
             return false;
         }
 
         return IChartType.filterSameAspect(aspect, filter);
+    }
+
+    @Override
+    public boolean checkIfXLogscalePossible(@Nullable IDataChartAspect filter) {
+        return false;
+    }
+
+    @Override
+    public boolean checkIfYLogscalePossible(@Nullable IDataChartAspect filter) {
+        if(filter == null) {
+            return true;
+        }
+
+        return IChartType.checkIfNumerical(filter);
     }
 
 }
