@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.TableColumnLayout;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.CheckStateChangedEvent;
@@ -23,6 +24,7 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ICheckStateListener;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
@@ -192,27 +194,38 @@ public class ChartMakerDialog extends SelectionDialog {
         /*
          * Series viewer
          */
+
+        /*
+         * This fixes a bug where the labels in the first column cannot be
+         * aligned to the center.
+         */
+        TableViewerColumn dummyColumn = new TableViewerColumn(fSeriesTable, SWT.NONE);
+        dummyColumn.setLabelProvider(new SeriesDummyLabelProvider());
+
         TableViewerColumn xSelectionColumn = new TableViewerColumn(fSeriesTable, SWT.NONE);
-        xSelectionColumn.getColumn().setText("X");
+        xSelectionColumn.getColumn().setText(Messages.ChartMakerDialog_XSeries);
+        xSelectionColumn.getColumn().setAlignment(SWT.CENTER);
         xSelectionColumn.getColumn().setResizable(false);
         xSelectionColumn.setLabelProvider(new SeriesXLabelProvider());
 
         TableViewerColumn ySelectionColumn = new TableViewerColumn(fSeriesTable, SWT.NONE);
-        ySelectionColumn.getColumn().setText("Y");
+        ySelectionColumn.getColumn().setText(Messages.ChartMakerDialog_YSeries);
+        ySelectionColumn.getColumn().setAlignment(SWT.CENTER);
         ySelectionColumn.getColumn().setResizable(false);
         ySelectionColumn.setLabelProvider(new SeriesYLabelProvider());
 
         TableViewerColumn removeColumn = new TableViewerColumn(fSeriesTable, SWT.NONE);
         removeColumn.getColumn().setResizable(false);
-        removeColumn.setLabelProvider(new RemoveLabelProvider());
+        removeColumn.setLabelProvider(new SeriesRemoveLabelProvider());
 
         TableColumnLayout seriesLayout = new TableColumnLayout();
-        seriesLayout.setColumnData(xSelectionColumn.getColumn(), new ColumnWeightData(47));
-        seriesLayout.setColumnData(ySelectionColumn.getColumn(), new ColumnWeightData(47));
+        seriesLayout.setColumnData(dummyColumn.getColumn(), new ColumnPixelData(0));
+        seriesLayout.setColumnData(xSelectionColumn.getColumn(), new ColumnWeightData(50));
+        seriesLayout.setColumnData(ySelectionColumn.getColumn(), new ColumnWeightData(50));
         seriesLayout.setColumnData(removeColumn.getColumn(), new ColumnPixelData(35));
 
         Group seriesGroup = new Group(fComposite, SWT.BORDER | SWT.FILL);
-        seriesGroup.setText("Selected Series");
+        seriesGroup.setText(Messages.ChartMakerDialog_SelectedSeries);
         seriesGroup.setLayout(genericGridLayout);
         seriesGroup.setLayoutData(genericFillGridData);
 
@@ -383,6 +396,20 @@ public class ChartMakerDialog extends SelectionDialog {
     // Util methods
     // ------------------------------------------------------------------------
 
+    private boolean checkIfSeriesCompatible(IChartType typeA, IChartType typeB) {
+        for (ChartSeries series : fSeries) {
+            if (typeA.filterX(series.getX().getAspect(), null) != typeB.filterX(series.getX().getAspect(), null)) {
+                return false;
+            }
+
+            if (typeA.filterY(series.getY().getAspect(), null) != typeB.filterY(series.getY().getAspect(), null)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private boolean checkIfButtonReady() {
         if (fSelectionX.getSelection().isEmpty()) {
             return false;
@@ -403,6 +430,36 @@ public class ChartMakerDialog extends SelectionDialog {
         }
 
         return false;
+    }
+
+    private @Nullable ChartSeries findButtonOwner(Button button) {
+        for (ChartSeriesDialog series : fSeries) {
+            if (series.getButton() == button) {
+                return series;
+            }
+        }
+
+        return null;
+    }
+
+    private void tryResetXFilter() {
+        if (fSeries.size() != 0) {
+            return;
+        }
+
+        fXAspectFilter = null;
+    }
+
+    private void tryResetYFilter() {
+        if (fSeries.size() != 0) {
+            return;
+        }
+
+        if (fSelectionY.getCheckedElements().length != 0) {
+            return;
+        }
+
+        fYAspectFilter = null;
     }
 
     private void enableXLog() {
@@ -432,8 +489,11 @@ public class ChartMakerDialog extends SelectionDialog {
     // Listeners, Providers, etc
     // ------------------------------------------------------------------------
 
+    /**
+     * This class extension avoid the use of an hashmap for linking a series
+     * with a button. Each button in the series table are linked to a series.
+     */
     private class ChartSeriesDialog extends ChartSeries {
-
         private @Nullable Button fButton;
 
         private ChartSeriesDialog(DataDescriptor descriptorX, DataDescriptor descriptorY) {
@@ -449,7 +509,9 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
-
+    /**
+     * This provider provides the image in the chart type selection table.
+     */
     private class TypeLabelProvider extends ColumnLabelProvider {
         @Override
         public @Nullable String getText(@Nullable Object element) {
@@ -463,11 +525,28 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    /**
+     * This listener handle the selection in the chart type selection table.
+     */
     private class TypeSelectionListener implements ISelectionChangedListener {
         @Override
         public void selectionChanged(@Nullable SelectionChangedEvent event) {
             IStructuredSelection selection = fTypeTable.getStructuredSelection();
-            fType = (IChartType) selection.getFirstElement();
+            IChartType type = (IChartType) selection.getFirstElement();
+
+            /* Check if the series are compatible with the chart type */
+            if (fSeries.size() != 0 && !checkIfSeriesCompatible(checkNotNull(fType), type)) {
+                String warning = Messages.ChartMakerDialog_WarningConfirm;
+                String message = String.format(Messages.ChartMakerDialog_WarningIncompatibleSeries,
+                        type.getType().toString().toLowerCase());
+
+                boolean choice = MessageDialog.openConfirm(fComposite.getShell(), warning, message);
+                if(!choice) {
+                    fTypeTable.getSelection();
+                }
+            }
+
+            fType = type;
 
             fSelectionX.getTable().deselectAll();
             fSelectionY.getTable().deselectAll();
@@ -479,9 +558,23 @@ public class ChartMakerDialog extends SelectionDialog {
             fSelectionY.refresh();
 
             fAddButton.setEnabled(checkIfButtonReady());
+
         }
     }
 
+    /**
+     * This dummy provider is used as a workaround in column's bug.
+     */
+    private class SeriesDummyLabelProvider extends ColumnLabelProvider {
+        @Override
+        public @Nullable String getText(@Nullable Object element) {
+            return null;
+        }
+    }
+
+    /**
+     * This provider provides the labels for the X column of the series table.
+     */
     private class SeriesXLabelProvider extends ColumnLabelProvider {
         @Override
         public String getText(@Nullable Object element) {
@@ -490,6 +583,9 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    /**
+     * This provider provides the labels for the Y column of the series table.
+     */
     private class SeriesYLabelProvider extends ColumnLabelProvider {
         @Override
         public String getText(@Nullable Object element) {
@@ -498,7 +594,11 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
-    private class RemoveLabelProvider extends ColumnLabelProvider {
+    /**
+     * This provider provides the buttons for removing a series in the series
+     * table.
+     */
+    private class SeriesRemoveLabelProvider extends ColumnLabelProvider {
         @Override
         public @Nullable String getText(@Nullable Object element) {
             return null;
@@ -506,17 +606,18 @@ public class ChartMakerDialog extends SelectionDialog {
 
         @Override
         public void update(@Nullable ViewerCell cell) {
-            if(cell == null) {
+            if (cell == null) {
                 return;
             }
 
             /* Create a button if it doesn't exist */
             ChartSeriesDialog series = (ChartSeriesDialog) cell.getViewerRow().getElement();
             Button button;
-            if(series.getButton() == null) {
+            if (series.getButton() == null) {
                 Image image = PlatformUI.getWorkbench().getSharedImages().getImage(ISharedImages.IMG_TOOL_DELETE);
-                button = new Button((Composite) cell.getViewerRow().getControl(),SWT.NONE);
+                button = new Button((Composite) cell.getViewerRow().getControl(), SWT.NONE);
                 button.setImage(image);
+                button.addListener(SWT.Selection, new SeriesRemoveButtonEvent());
                 series.setButton(button);
             } else {
                 button = series.getButton();
@@ -525,17 +626,51 @@ public class ChartMakerDialog extends SelectionDialog {
             /* Set the position of the button into the cell */
             TableItem item = (TableItem) cell.getItem();
             TableEditor editor = new TableEditor(item.getParent());
-            editor.grabHorizontal  = true;
+            editor.grabHorizontal = true;
             editor.grabVertical = true;
-            editor.setEditor(button , item, cell.getColumnIndex());
+            editor.setEditor(button, item, cell.getColumnIndex());
             editor.layout();
         }
     }
 
+    /**
+     * This listener handles the event when the button for removing a series is
+     * clicked.
+     */
+    private class SeriesRemoveButtonEvent implements Listener {
+        @Override
+        public void handleEvent(@Nullable Event event) {
+            if (event == null) {
+                return;
+            }
+
+            Button button = (Button) checkNotNull(event.widget);
+            button.dispose();
+
+            ChartSeries series = findButtonOwner(button);
+            fSeries.remove(series);
+            fSeriesTable.refresh();
+
+            tryResetXFilter();
+            fSelectionX.refresh();
+
+            tryResetYFilter();
+            fSelectionY.refresh();
+
+            /* Disable OK button if no series are made */
+            if (fSeries.size() == 0) {
+                getButton(IDialogConstants.OK_ID).setEnabled(false);
+            }
+        }
+    }
+
+    /**
+     * This listener resizes the height of each row of the series table.
+     */
     private class SeriesRowResize implements Listener {
         @Override
         public void handleEvent(@Nullable Event event) {
-            if(event == null) {
+            if (event == null) {
                 return;
             }
 
@@ -543,6 +678,9 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    /**
+     * This provider provides labels for {@link DataDescriptor}.
+     */
     private class DataDescriptorLabelProvider extends ColumnLabelProvider {
         @Override
         public String getText(@Nullable Object element) {
@@ -551,6 +689,9 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    /**
+     * This filter is used for filtering labels in the X selection table.
+     */
     private class CreatorXFilter extends ViewerFilter {
         @Override
         public boolean select(@Nullable Viewer viewer, @Nullable Object parentElement, @Nullable Object element) {
@@ -565,6 +706,9 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    /**
+     * This filter is used for filtering labels in the Y selection table.
+     */
     private class CreatorYFilter extends ViewerFilter {
         @Override
         public boolean select(@Nullable Viewer viewer, @Nullable Object parentElement, @Nullable Object element) {
@@ -579,6 +723,10 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    /**
+     * This listener handles the event when a selection is made in the X
+     * selection table.
+     */
     private class CreatorXSelectedEvent implements ISelectionChangedListener {
         @Override
         public void selectionChanged(@Nullable SelectionChangedEvent event) {
@@ -586,6 +734,10 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    /**
+     * This listener handles the event when a value is checked in the Y
+     * selection table.
+     */
     private class CreatorYSelectedEvent implements ICheckStateListener {
         @Override
         public void checkStateChanged(@Nullable CheckStateChangedEvent event) {
@@ -599,9 +751,7 @@ public class ChartMakerDialog extends SelectionDialog {
                     fYAspectFilter = descriptor.getAspect();
                 }
             } else {
-                if (fSelectionY.getCheckedElements().length == 0) {
-                    fYAspectFilter = null;
-                }
+                tryResetYFilter();
             }
 
             fSelectionY.refresh();
@@ -609,12 +759,17 @@ public class ChartMakerDialog extends SelectionDialog {
         }
     }
 
+    /**
+     * This listener handle the event when the add button of the series creator
+     * is clicked.
+     */
     private class AddButtonClickedEvent implements Listener {
         @Override
         public void handleEvent(@Nullable Event event) {
             DataDescriptor descriptorX = (DataDescriptor) checkNotNull(fSelectionX.getStructuredSelection().getFirstElement());
             Object[] descriptorsY = fSelectionY.getCheckedElements();
 
+            /* Create a series for each Y axis */
             for (int i = 0; i < descriptorsY.length; i++) {
                 DataDescriptor descriptorY = (DataDescriptor) descriptorsY[i];
                 ChartSeriesDialog series = new ChartSeriesDialog(descriptorX, checkNotNull(descriptorY));
@@ -624,7 +779,17 @@ public class ChartMakerDialog extends SelectionDialog {
                 }
             }
 
+            /* Set the X filter */
+            if (fXAspectFilter == null) {
+                fXAspectFilter = descriptorX.getAspect();
+            }
+
+            /* Refresh tables */
             fSeriesTable.refresh();
+            fSelectionX.refresh();
+
+            /* Enable OK button */
+            getButton(IDialogConstants.OK_ID).setEnabled(true);
         }
     }
 }

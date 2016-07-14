@@ -16,7 +16,7 @@ import org.eclipse.osgi.util.NLS;
  */
 public class Messages extends NLS {
 
-    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.tmf.chart.ui.messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.tmf.chart.ui.dialog.messages"; //$NON-NLS-1$
     /**
      * Title for the selection of data
      */
@@ -49,6 +49,20 @@ public class Messages extends NLS {
      * Title for choosing data source for the Y axis
      */
     public static @Nullable String ChartMakerDialog_YAxis;
+    /**
+     * Title for the series group
+     */
+    public static @Nullable String ChartMakerDialog_SelectedSeries;
+    public static String ChartMakerDialog_WarningConfirm;
+    public static String ChartMakerDialog_WarningIncompatibleSeries;
+    /**
+     * Title for X series
+     */
+    public static @Nullable String ChartMakerDialog_XSeries;
+    /**
+     * Title for Y series
+     */
+    public static @Nullable String ChartMakerDialog_YSeries;
 
     static {
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);
