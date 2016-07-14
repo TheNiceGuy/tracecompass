@@ -11,6 +11,7 @@ package org.eclipse.tracecompass.tmf.chart.ui.dialog;
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.jdt.annotation.Nullable;
@@ -24,10 +25,10 @@ import org.eclipse.jface.viewers.ColumnLabelProvider;
 import org.eclipse.jface.viewers.ColumnPixelData;
 import org.eclipse.jface.viewers.ColumnWeightData;
 import org.eclipse.jface.viewers.ICheckStateListener;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.TableViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
@@ -422,7 +423,7 @@ public class ChartMakerDialog extends SelectionDialog {
         return true;
     }
 
-    private boolean isSeriesPresent(ChartSeries test) {
+    private boolean checkIfSeriesPresent(ChartSeries test) {
         for (ChartSeries series : fSeries) {
             if (series.getX() == test.getX() && series.getY() == test.getY()) {
                 return true;
@@ -442,24 +443,50 @@ public class ChartMakerDialog extends SelectionDialog {
         return null;
     }
 
-    private void tryResetXFilter() {
+    private void removeIncompatibleSeries(IChartType type) {
+        Iterator<ChartSeriesDialog> iterator = fSeries.iterator();
+
+        while (iterator.hasNext()) {
+            ChartSeriesDialog series = checkNotNull(iterator.next());
+
+            /* Check if the series if compatible */
+            if (!type.filterX(series.getX().getAspect(), null) || !type.filterY(series.getY().getAspect(), null)) {
+                /* Remove the button of the series */
+                Button button = series.getButton();
+                if (button != null) {
+                    button.dispose();
+                }
+
+                /* Remove the series of the series list */
+                iterator.remove();
+            }
+        }
+    }
+
+    private void unselectIncompatibleSeries(IChartType type) {
+
+    }
+
+    private boolean tryResetXFilter() {
         if (fSeries.size() != 0) {
-            return;
+            return false;
         }
 
         fXAspectFilter = null;
+        return true;
     }
 
-    private void tryResetYFilter() {
+    private boolean tryResetYFilter() {
         if (fSeries.size() != 0) {
-            return;
+            return false;
         }
 
         if (fSelectionY.getCheckedElements().length != 0) {
-            return;
+            return false;
         }
 
         fYAspectFilter = null;
+        return true;
     }
 
     private void enableXLog() {
@@ -541,21 +568,27 @@ public class ChartMakerDialog extends SelectionDialog {
                         type.getType().toString().toLowerCase());
 
                 boolean choice = MessageDialog.openConfirm(fComposite.getShell(), warning, message);
-                if(!choice) {
-                    fTypeTable.getSelection();
+                if (!choice) {
+                    fTypeTable.setSelection(new StructuredSelection(fType));
+                    return;
                 }
+
+                removeIncompatibleSeries(type);
+                fSeriesTable.refresh();
+
+                fSelectionX.getTable().deselectAll();
+                fSelectionY.setAllChecked(false);
             }
 
             fType = type;
 
-            fSelectionX.getTable().deselectAll();
-            fSelectionY.getTable().deselectAll();
+            if (tryResetXFilter()) {
+                fSelectionX.refresh();
+            }
 
-            fXAspectFilter = null;
-            fYAspectFilter = null;
-
-            fSelectionX.refresh();
-            fSelectionY.refresh();
+            if (tryResetYFilter()) {
+                fSelectionY.refresh();
+            }
 
             fAddButton.setEnabled(checkIfButtonReady());
 
@@ -563,7 +596,7 @@ public class ChartMakerDialog extends SelectionDialog {
     }
 
     /**
-     * This dummy provider is used as a workaround in column's bug.
+     * This dummy provider is used as a workaround in a column's bug.
      */
     private class SeriesDummyLabelProvider extends ColumnLabelProvider {
         @Override
@@ -774,7 +807,7 @@ public class ChartMakerDialog extends SelectionDialog {
                 DataDescriptor descriptorY = (DataDescriptor) descriptorsY[i];
                 ChartSeriesDialog series = new ChartSeriesDialog(descriptorX, checkNotNull(descriptorY));
 
-                if (!isSeriesPresent(series)) {
+                if (!checkIfSeriesPresent(series)) {
                     fSeries.add(series);
                 }
             }
