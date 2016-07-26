@@ -19,6 +19,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartData;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartModel;
+import org.eclipse.tracecompass.internal.tmf.chart.ui.swt.SwtBarChart;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.swt.SwtScatterChart;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.swt.SwtXYChartViewer;
 
@@ -74,9 +75,9 @@ public interface IChartViewer {
     static @Nullable IChartViewer createChart(Composite parent, ChartData data, ChartModel model) {
         switch (model.getChartType()) {
         case BAR_CHART:
-            /**
-             * TODO
-             */
+            SwtXYChartViewer barChart = new SwtBarChart(parent, data, model);
+            barChart.populate();
+            return barChart;
         case SCATTER_CHART:
             SwtXYChartViewer scatterChart = new SwtScatterChart(parent, data, model);
             scatterChart.populate();
