@@ -16,7 +16,7 @@ Export-Package: org.eclipse.tracecompass.internal.provisional.tmf.chart.core.des
    org.eclipse.tracecompass.analysis.timing.core,
    org.eclipse.tracecompass.analysis.os.linux.core,
    org.eclipse.tracecompass.analysis.lami.core",
- org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart;x-friends:="org.eclipse.tracecompass.tmf.chart.ui",
+ org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart;x-friends:="org.eclipse.tracecompass.tmf.chart.ui,org.eclipse.tracecompass.analysis.lami.ui",
  org.eclipse.tracecompass.internal.provisional.tmf.chart.core.model;
   x-friends:="org.eclipse.tracecompass.tmf.chart.ui,
    org.eclipse.tracecompass.analysis.timing.core,

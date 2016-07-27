@@ -65,11 +65,10 @@ public class LamiResultTable implements IDataChartProvider<LamiTableEntry> {
      * @param entries
      *            The list of entries, or rows, contained in this table
      */
-    public LamiResultTable(LamiTimeRange timeRange, LamiTableClass tableClass,
-            Iterable<LamiTableEntry> entries) {
+    public LamiResultTable(LamiTimeRange timeRange, LamiTableClass tableClass, Iterable<LamiTableEntry> entries) {
         fTimeRange = timeRange;
         fTableClass = tableClass;
-        fEntries = ImmutableList.copyOf(entries);
+        fEntries = checkNotNull(ImmutableList.copyOf(entries));
         fDescriptors = new ArrayList<>();
 
         for (LamiTableEntryAspect aspect : getTableClass().getAspects()) {
@@ -80,7 +79,7 @@ public class LamiResultTable implements IDataChartProvider<LamiTableEntry> {
             if (aspect.isContinuous()) {
                 if (aspect.isTimeStamp()) {
                     /* Create descriptors for timestamps */
-                    fDescriptors.add(new DataChartTimestampDescriptor<>(aspect.getName(), new LamiDataLongResolver(aspect)));
+                    fDescriptors.add(new DataChartTimestampDescriptor<>(aspect.getName(), new LamiDataLongResolver(aspect), aspect.getUnits()));
                 } else if (aspect.isTimeDuration()) {
                     /* Create descriptors for time durations */
                     fDescriptors.add(new DataChartDurationDescriptor<>(aspect.getName(), new LamiDataLongResolver(aspect)));
