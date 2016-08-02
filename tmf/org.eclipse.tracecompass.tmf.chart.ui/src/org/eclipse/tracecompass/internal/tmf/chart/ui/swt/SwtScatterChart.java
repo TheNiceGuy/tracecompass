@@ -13,17 +13,20 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import java.text.Format;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.PaintEvent;
@@ -40,6 +43,7 @@ import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartD
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartModel;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartSeries;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.resolver.IDataResolver;
+import org.eclipse.tracecompass.internal.provisional.tmf.chart.ui.signal.ChartSelectionUpdateSignal;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.aggregator.NumericalConsumerAggregator;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.IDataConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.NumericalConsumer;
@@ -49,6 +53,7 @@ import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.XYSeriesConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.data.ChartRangeMap;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.format.LabelFormat;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.swt.SwtPoint;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
 import org.swtchart.IAxis;
 import org.swtchart.IAxisTick;
 import org.swtchart.ILineSeries;
@@ -133,6 +138,9 @@ public class SwtScatterChart extends SwtXYChartViewer {
 
         /* Add the mouse exit listener */
         getChart().getPlotArea().addListener(SWT.MouseExit, new MouseExitListener());
+
+        /* Add the mouse click listener */
+        getChart().getPlotArea().addMouseListener(new MouseDownListener());
 
         /* Add the paint listener */
         getChart().getPlotArea().addPaintListener(new ScatterPainterListener());
@@ -522,6 +530,43 @@ public class SwtScatterChart extends SwtXYChartViewer {
         }
     }
 
+    private final class MouseDownListener extends MouseAdapter {
+        @Override
+        public void mouseDown(@Nullable MouseEvent event) {
+            if (event == null || event.button != 1) {
+                return;
+            }
+
+            /* Check if a point is hovered */
+            SwtPoint selection = fHoveredPoint;
+            if (selection == null) {
+                getSelection().clear();
+            } else {
+                boolean ctrl = (event.stateMask & SWT.CTRL) != 0;
+                getSelection().touch(selection, ctrl);
+            }
+
+            /* Redraw the selected points */
+            refresh();
+
+            /* Find these points map to which objects */
+            Set<Object> set = new HashSet<>();
+            for (SwtPoint point : getSelection().getPoints()) {
+                Object[] objects = getObjectMap().get(point.getSeries());
+
+                /* Add objects to the set */
+                Object obj = objects[point.getIndex()];
+                if (obj != null) {
+                    set.add(obj);
+                }
+            }
+
+            /* Send the update signal */
+            ChartSelectionUpdateSignal signal = new ChartSelectionUpdateSignal(SwtScatterChart.this, getData().getDataProvider(), set);
+            TmfSignalManager.dispatchSignal(signal);
+        }
+    }
+
     private final class ScatterPainterListener implements PaintListener {
         @Override
         public void paintControl(@Nullable PaintEvent event) {
@@ -536,6 +581,9 @@ public class SwtScatterChart extends SwtXYChartViewer {
 
             /* Draw the hovering cross */
             drawHoveringCross(gc);
+
+            /* Draw the selected points */
+            drawSelectedDot(gc);
         }
 
         private void drawHoveringCross(GC gc) {
@@ -553,6 +601,25 @@ public class SwtScatterChart extends SwtXYChartViewer {
 
             /* Horizontal line */
             gc.drawLine(0, fHoveringPoint.y, getChart().getPlotArea().getSize().x, fHoveringPoint.y);
+        }
+
+        private void drawSelectedDot(GC gc) {
+            for (SwtPoint point : getSelection().getPoints()) {
+                ISeries series = point.getSeries();
+                Point coor = series.getPixelCoordinates(point.getIndex());
+                int symbolSize = ((ILineSeries) series).getSymbolSize();
+
+                /* Configure cross settings */
+                gc.setLineWidth(2);
+                gc.setLineStyle(SWT.LINE_SOLID);
+                int drawingDelta = 2 * symbolSize;
+
+                /* Vertical line */
+                gc.drawLine(coor.x, coor.y - drawingDelta, coor.x, coor.y + drawingDelta);
+
+                /* Horizontal line */
+                gc.drawLine(coor.x - drawingDelta, coor.y, coor.x + drawingDelta, coor.y);
+            }
         }
     }
 

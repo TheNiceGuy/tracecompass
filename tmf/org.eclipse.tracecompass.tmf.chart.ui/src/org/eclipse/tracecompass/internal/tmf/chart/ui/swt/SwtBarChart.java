@@ -13,15 +13,22 @@ import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
@@ -32,6 +39,7 @@ import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartM
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartSeries;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.descriptor.IDataChartDescriptor;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.resolver.IDataResolver;
+import org.eclipse.tracecompass.internal.provisional.tmf.chart.ui.signal.ChartSelectionUpdateSignal;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.aggregator.NumericalConsumerAggregator;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.BarStringConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.IDataConsumer;
@@ -39,6 +47,8 @@ import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.NumericalConsumer
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.XYChartConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.XYSeriesConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.data.ChartRangeMap;
+import org.eclipse.tracecompass.internal.tmf.chart.ui.swt.SwtPoint;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSignalManager;
 import org.swtchart.IAxis;
 import org.swtchart.IAxisTick;
 import org.swtchart.IBarSeries;
@@ -84,6 +94,12 @@ public class SwtBarChart extends SwtXYChartViewer {
      */
     public SwtBarChart(Composite parent, ChartData data, ChartModel model) {
         super(parent, data, model);
+
+        /* Add the mouse click listener */
+        getChart().getPlotArea().addMouseListener(new MouseDownListener());
+
+        /* Add the paint listener */
+        getChart().getPlotArea().addPaintListener(new BarPainterListener());
     }
 
     // ------------------------------------------------------------------------
@@ -277,6 +293,107 @@ public class SwtBarChart extends SwtXYChartViewer {
 
     private static long countDistinctDescriptors(Stream<IDataChartDescriptor<?, ?>> descriptors) {
         return descriptors.distinct().count();
+    }
+
+    // ------------------------------------------------------------------------
+    // Listeners
+    // ------------------------------------------------------------------------
+
+    private final class MouseDownListener extends MouseAdapter {
+        @Override
+        public void mouseDown(@Nullable MouseEvent event) {
+            if (event == null || event.button != 1) {
+                return;
+            }
+
+            /* Get the click location */
+            int xClick = event.x;
+            int yClick = event.y;
+
+            /* Check if CTRL is pressed */
+            boolean ctrl = (event.stateMask & SWT.CTRL) != 0;
+
+            /* Find which series contains the click */
+            boolean found = false;
+            for (ISeries swtSeries : getChart().getSeriesSet().getSeries()) {
+                IBarSeries series = (IBarSeries) swtSeries;
+
+                /* Look through each rectangle */
+                Rectangle[] rectangles = series.getBounds();
+                for (int i = 0; i < rectangles.length; i++) {
+                    if (rectangles[i].contains(xClick, yClick)) {
+                        getSelection().touch(new SwtPoint(series, i), ctrl);
+                        found = true;
+                    }
+                }
+            }
+
+            /* Check if a selection was found */
+            if (!found) {
+                getSelection().clear();
+            }
+
+            /* Redraw the selected points */
+            refresh();
+
+            /* Find these points map to which objects */
+            Set<Object> set = new HashSet<>();
+            for (SwtPoint point : getSelection().getPoints()) {
+                Object[] objects = getObjectMap().get(point.getSeries());
+
+                /* Add objects to the set */
+                Object obj = objects[point.getIndex()];
+                if (obj != null) {
+                    set.add(obj);
+                }
+            }
+
+            /* Send the update signal */
+            ChartSelectionUpdateSignal signal = new ChartSelectionUpdateSignal(SwtBarChart.this, getData().getDataProvider(), set);
+            TmfSignalManager.dispatchSignal(signal);
+        }
+    }
+
+    private final class BarPainterListener implements PaintListener {
+        @Override
+        public void paintControl(@Nullable PaintEvent event) {
+            if (event == null) {
+                return;
+            }
+
+            /* Don't draw if there's no selection */
+            if (getSelection().getPoints().size() == 0) {
+                return;
+            }
+
+            /* Create iterators for the colors */
+            Iterator<Color> colors = Iterators.cycle(COLORS);
+            Iterator<Color> lights = Iterators.cycle(COLORS_LIGHT);
+
+            GC gc = event.gc;
+
+            /* Redraw all the series */
+            for (ISeries swtSeries : getChart().getSeriesSet().getSeries()) {
+                IBarSeries series = (IBarSeries) swtSeries;
+                Color color = checkNotNull(colors.next());
+                Color light = checkNotNull(lights.next());
+
+                /* Redraw all the rectangles */
+                for (int i = 0; i < series.getBounds().length; i++) {
+                    gc.setBackground(light);
+
+                    /* Check if the rectangle is selected */
+                    for (SwtPoint point : getSelection().getPoints()) {
+                        if (point.getSeries() == series && point.getIndex() == i) {
+                            gc.setBackground(color);
+                            break;
+                        }
+                    }
+
+                    gc.fillRectangle(series.getBounds()[i]);
+                }
+            }
+        }
     }
 
 }

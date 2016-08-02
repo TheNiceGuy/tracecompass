@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.text.Format;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -44,12 +45,16 @@ import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.descriptor.I
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.resolver.IDataResolver;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.resolver.INumericalResolver;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.ui.chart.IChartViewer;
+import org.eclipse.tracecompass.internal.provisional.tmf.chart.ui.signal.ChartSelectionUpdateSignal;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.IChartConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.XYChartConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.data.ChartRangeMap;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.data.DescriptorsInformation;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.format.ChartDecimalUnitFormat;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.format.ChartTimeStampFormat;
+import org.eclipse.tracecompass.internal.tmf.chart.ui.swt.SwtPoint;
+import org.eclipse.tracecompass.internal.tmf.chart.ui.swt.SwtSelection;
+import org.eclipse.tracecompass.tmf.core.signal.TmfSignalHandler;
 import org.eclipse.tracecompass.tmf.ui.viewers.TmfViewer;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.PlatformUI;
@@ -173,6 +178,10 @@ public abstract class SwtXYChartViewer extends TmfViewer implements IChartViewer
      * Map between SWT series and consumed objects
      */
     private final Map<@NonNull ISeries, @NonNull Object[]> fObjectMap = new HashMap<>();
+    /**
+     * Object that contains the selection in the chart
+     */
+    private final SwtSelection fSelectedPoints = new SwtSelection();
 
     // ------------------------------------------------------------------------
     // Constructors
@@ -358,6 +367,43 @@ public abstract class SwtXYChartViewer extends TmfViewer implements IChartViewer
      * This method refreshed the display labels.
      */
     protected abstract void refreshDisplayLabels();
+
+    // ------------------------------------------------------------------------
+    // Signals
+    // ------------------------------------------------------------------------
+
+    /**
+     * Handler that handles a {@link ChartSelectionUpdateSignal} coming from
+     * another analysis.
+     *
+     * @param signal
+     *            The received signal
+     */
+    @TmfSignalHandler
+    public void updateSelection(ChartSelectionUpdateSignal signal) {
+        Object source = signal.getSource();
+        if (this.hashCode() == source.hashCode()) {
+            return;
+        }
+
+        /* Clear the current list of points */
+        fSelectedPoints.clear();
+
+        /* Search the each object through all the series */
+        Set<Object> set = signal.getSelectedObject();
+        for (ISeries series : getObjectMap().keySet()) {
+            Object[] objects = checkNotNull(getObjectMap().get(series));
+
+            for (int i = 0; i < objects.length; i++) {
+                if (set.contains(objects[i])) {
+                    fSelectedPoints.add(new SwtPoint(series, i));
+                }
+            }
+        }
+
+        /* Redraw the points */
+        refresh();
+    }
 
     // ------------------------------------------------------------------------
     // Operations
@@ -774,6 +820,15 @@ public abstract class SwtXYChartViewer extends TmfViewer implements IChartViewer
      */
     protected Map<@NonNull ISeries, @NonNull Object[]> getObjectMap() {
         return fObjectMap;
+    }
+
+    /**
+     * Accessor that returns the selection in the chart.
+     *
+     * @return The selection in the chart
+     */
+    protected SwtSelection getSelection() {
+        return fSelectedPoints;
     }
 
     /**
