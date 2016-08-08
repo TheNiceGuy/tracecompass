@@ -33,6 +33,7 @@ public abstract class AbstractSegmentStoreTableView extends TmfView {
     // ------------------------------------------------------------------------
 
     private @Nullable AbstractSegmentStoreTableViewer fSegmentStoreViewer;
+    private @Nullable Composite fContainer;
 
     // ------------------------------------------------------------------------
     // Constructor
@@ -51,8 +52,8 @@ public abstract class AbstractSegmentStoreTableView extends TmfView {
 
     @Override
     public void createPartControl(@Nullable Composite parent) {
-        SashForm sf = new SashForm(parent, SWT.NONE);
-        TableViewer tableViewer = new TableViewer(sf, SWT.FULL_SELECTION | SWT.VIRTUAL);
+        fContainer = new SashForm(parent, SWT.NONE);
+        TableViewer tableViewer = new TableViewer(fContainer, SWT.FULL_SELECTION | SWT.VIRTUAL);
         fSegmentStoreViewer = createSegmentStoreViewer(tableViewer);
         setInitialData();
     }
@@ -102,5 +103,14 @@ public abstract class AbstractSegmentStoreTableView extends TmfView {
         if (fSegmentStoreViewer != null) {
             fSegmentStoreViewer.setData(fSegmentStoreViewer.getSegmentProvider());
         }
+    }
+
+    /**
+     * Method that returns the composite to put a chart beside the table.
+     *
+     * @return The composite to put more widget
+     */
+    protected @Nullable Composite getContainer() {
+        return fContainer;
     }
 }

@@ -17,7 +17,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -28,6 +30,8 @@ import org.eclipse.tracecompass.analysis.os.linux.core.tid.TidAnalysisModule;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelAnalysisEventLayout;
 import org.eclipse.tracecompass.analysis.os.linux.core.trace.IKernelTrace;
 import org.eclipse.tracecompass.analysis.timing.core.segmentstore.AbstractSegmentStoreAnalysisEventBasedModule;
+import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.descriptor.IDataChartDescriptor;
+import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.model.IDataChartProvider;
 import org.eclipse.tracecompass.segmentstore.core.ISegment;
 import org.eclipse.tracecompass.segmentstore.core.ISegmentStore;
 import org.eclipse.tracecompass.tmf.core.analysis.IAnalysisModule;
@@ -40,9 +44,14 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Alexandre Montplaisir
+ * @author Gabriel-Andrew Pollo-Guilbert
  * @since 2.0
  */
-public class SystemCallLatencyAnalysis extends AbstractSegmentStoreAnalysisEventBasedModule {
+public class SystemCallLatencyAnalysis extends AbstractSegmentStoreAnalysisEventBasedModule implements IDataChartProvider<SystemCall> {
+
+    // ------------------------------------------------------------------------
+    // Attributes
+    // ------------------------------------------------------------------------
 
     /**
      * The ID of this analysis
@@ -50,9 +59,12 @@ public class SystemCallLatencyAnalysis extends AbstractSegmentStoreAnalysisEvent
     public static final String ID = "org.eclipse.tracecompass.analysis.os.linux.latency.syscall"; //$NON-NLS-1$
 
     private static final String DATA_FILENAME = "latency-analysis.dat"; //$NON-NLS-1$
+    private static final Collection<ISegmentAspect> BASE_ASPECTS = ImmutableList.of(SyscallNameAspect.INSTANCE);
+    private static final SystemCallDataModel fModel = new SystemCallDataModel();
 
-    private static final Collection<ISegmentAspect> BASE_ASPECTS =
-            ImmutableList.of(SyscallNameAspect.INSTANCE);
+    // ------------------------------------------------------------------------
+    // Overriden methods
+    // ------------------------------------------------------------------------
 
     @Override
     public String getId() {
@@ -92,8 +104,22 @@ public class SystemCallLatencyAnalysis extends AbstractSegmentStoreAnalysisEvent
         return checkNotNull((Object[]) ois.readObject());
     }
 
-    private class SyscallLatencyAnalysisRequest extends AbstractSegmentStoreAnalysisRequest {
+    @Override
+    public @NonNull Stream<SystemCall> getSource() {
+        ISegmentStore<ISegment> store = checkNotNull(getSegmentStore());
+        return checkNotNull(store.stream().map(segment -> (SystemCall) segment));
+    }
 
+    @Override
+    public @NonNull List<IDataChartDescriptor<SystemCall, ?>> getDataDescriptors() {
+        return fModel.getDataDescriptors();
+    }
+
+    // ------------------------------------------------------------------------
+    // Anonymous classes
+    // ------------------------------------------------------------------------
+
+    private class SyscallLatencyAnalysisRequest extends AbstractSegmentStoreAnalysisRequest {
         private final Map<Integer, SystemCall.InitialInfo> fOngoingSystemCalls = new HashMap<>();
         private @Nullable IKernelAnalysisEventLayout fLayout;
         private final IProgressMonitor fMonitor = new NullProgressMonitor();
@@ -180,20 +206,24 @@ public class SystemCallLatencyAnalysis extends AbstractSegmentStoreAnalysisEvent
     private static final class SyscallNameAspect implements ISegmentAspect {
         public static final ISegmentAspect INSTANCE = new SyscallNameAspect();
 
-        private SyscallNameAspect() { }
+        private SyscallNameAspect() {
+        }
 
         @Override
         public String getHelpText() {
             return checkNotNull(Messages.SegmentAspectHelpText_SystemCall);
         }
+
         @Override
         public String getName() {
             return checkNotNull(Messages.SegmentAspectName_SystemCall);
         }
+
         @Override
         public @Nullable Comparator<?> getComparator() {
             return null;
         }
+
         @Override
         public @Nullable String resolve(ISegment segment) {
             if (segment instanceof SystemCall) {

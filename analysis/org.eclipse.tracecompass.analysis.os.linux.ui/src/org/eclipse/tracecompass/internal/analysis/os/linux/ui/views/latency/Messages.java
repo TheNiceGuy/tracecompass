@@ -37,6 +37,11 @@ public class Messages extends NLS {
      */
     public static String SystemCallLatencyScatterView_yAxis;
 
+    /**
+     * New custom chart
+     */
+    public static String SystemCallLatencyView_NewCustomChart;
+
     static {
         // initialize resource bundle
         NLS.initializeMessages(BUNDLE_NAME, Messages.class);

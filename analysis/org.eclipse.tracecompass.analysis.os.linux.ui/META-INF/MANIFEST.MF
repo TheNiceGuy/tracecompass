@@ -19,7 +19,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.tracecompass.tmf.ctf.core,
  org.eclipse.tracecompass.segmentstore.core,
  org.eclipse.tracecompass.analysis.timing.core,
- org.eclipse.tracecompass.analysis.timing.ui
+ org.eclipse.tracecompass.analysis.timing.ui,
+ org.eclipse.tracecompass.tmf.chart.ui,
+ org.eclipse.tracecompass.tmf.chart.core
 Import-Package: com.google.common.base,
  com.google.common.collect,
  org.swtchart
