@@ -6,7 +6,7 @@
  * accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *******************************************************************************/
-package org.eclipse.tracecompass.internal.tmf.chart.ui.swt;
+package org.eclipse.tracecompass.internal.tmf.chart.ui.swtchart;
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
@@ -40,6 +40,7 @@ import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartD
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartModel;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.chart.ChartSeries;
 import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.resolver.IDataResolver;
+import org.eclipse.tracecompass.internal.provisional.tmf.chart.core.resolver.INumericalResolver;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.aggregator.NumericalConsumerAggregator;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.IDataConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.NumericalConsumer;
@@ -48,7 +49,7 @@ import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.XYChartConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.consumer.XYSeriesConsumer;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.data.ChartRangeMap;
 import org.eclipse.tracecompass.internal.tmf.chart.ui.format.LabelFormat;
-import org.eclipse.tracecompass.internal.tmf.chart.ui.swt.SwtPoint;
+import org.eclipse.tracecompass.internal.tmf.chart.ui.swtchart.SwtPoint;
 import org.swtchart.IAxis;
 import org.swtchart.IAxisTick;
 import org.swtchart.ILineSeries;
@@ -66,7 +67,7 @@ import com.google.common.collect.Iterators;
  *
  * @author Gabriel-Andrew Pollo-Guilbert
  */
-public class SwtScatterChart extends SwtXYChartViewer {
+public final class SwtScatterChart extends SwtXYChartViewer {
 
     // ------------------------------------------------------------------------
     // Constants
@@ -89,19 +90,19 @@ public class SwtScatterChart extends SwtXYChartViewer {
     /**
      * Map linking X string categories to integer
      */
-    private BiMap<@Nullable String, Integer> fXStringMap = checkNotNull(HashBiMap.create());
+    private BiMap<String, Integer> fXStringMap = checkNotNull(HashBiMap.create());
     /**
      * Map linking Y string categories to integer
      */
-    private BiMap<@Nullable String, Integer> fYStringMap = checkNotNull(HashBiMap.create());
+    private BiMap<String, Integer> fYStringMap = checkNotNull(HashBiMap.create());
     /**
      * Map used for showing X categories on the axis
      */
-    private BiMap<@Nullable String, Integer> fVisibleXMap = checkNotNull(HashBiMap.create());
+    private BiMap<String, Integer> fVisibleXMap = checkNotNull(HashBiMap.create());
     /**
      * Map used for showing Y categories on the axis
      */
-    private BiMap<@Nullable String, Integer> fVisibleYMap = checkNotNull(HashBiMap.create());
+    private BiMap<String, Integer> fVisibleYMap = checkNotNull(HashBiMap.create());
     /**
      * Coordinates in pixels of the currently hovered point
      */
@@ -136,6 +137,8 @@ public class SwtScatterChart extends SwtXYChartViewer {
 
         /* Add the paint listener */
         getChart().getPlotArea().addPaintListener(new ScatterPainterListener());
+
+        populate();
     }
 
     // ------------------------------------------------------------------------
@@ -154,14 +157,16 @@ public class SwtScatterChart extends SwtXYChartViewer {
             IDataResolver<?, ?> xResolver = s.getX().getResolver();
             Predicate<@Nullable Number> xPredicate;
             if (getModel().isXLogscale()) {
-                xPredicate = new LogarithmicPredicate(xResolver);
+                INumericalResolver<Object, Number> resolver = INumericalResolver.class.cast(xResolver);
+                xPredicate = new LogarithmicPredicate(resolver);
             } else {
                 xPredicate = Objects::nonNull;
             }
 
             /* Create a consumer for the X descriptor */
-            if (getXDescriptorsInfo().areNumericals()) {
-                xConsumer = new NumericalConsumer(xResolver, xPredicate);
+            if (getXDescriptorsInfo().areNumerical()) {
+                INumericalResolver<Object, Number> resolver = INumericalResolver.class.cast(xResolver);
+                xConsumer = new NumericalConsumer(resolver, xPredicate);
             } else {
                 xConsumer = new ScatterStringConsumer(xResolver, fXStringMap);
             }
@@ -170,14 +175,16 @@ public class SwtScatterChart extends SwtXYChartViewer {
             IDataResolver<?, ?> yResolver = s.getY().getResolver();
             Predicate<@Nullable Number> yPredicate;
             if (getModel().isYLogscale()) {
-                yPredicate = new LogarithmicPredicate(yResolver);
+                INumericalResolver<Object, Number> resolver = INumericalResolver.class.cast(xResolver);
+                yPredicate = new LogarithmicPredicate(resolver);
             } else {
                 yPredicate = Objects::nonNull;
             }
 
             /* Create a consumer for the Y descriptor */
-            if (getYDescriptorsInfo().areNumericals()) {
-                yConsumer = new NumericalConsumer(yResolver, yPredicate);
+            if (getYDescriptorsInfo().areNumerical()) {
+                INumericalResolver<Object, Number> resolver = INumericalResolver.class.cast(xResolver);
+                yConsumer = new NumericalConsumer(resolver, yPredicate);
             } else {
                 yConsumer = new ScatterStringConsumer(yResolver, fYStringMap);
             }
@@ -188,7 +195,7 @@ public class SwtScatterChart extends SwtXYChartViewer {
 
         /* Create a numerical aggregator if the X axis is numerical */
         NumericalConsumerAggregator xAggregator;
-        if (getXDescriptorsInfo().areNumericals()) {
+        if (getXDescriptorsInfo().areNumerical()) {
             xAggregator = new NumericalConsumerAggregator();
         } else {
             xAggregator = null;
@@ -196,7 +203,7 @@ public class SwtScatterChart extends SwtXYChartViewer {
 
         /* Create a numerical aggregator if the Y axis is numerical */
         NumericalConsumerAggregator yAggregator;
-        if (getYDescriptorsInfo().areNumericals()) {
+        if (getYDescriptorsInfo().areNumerical()) {
             yAggregator = new NumericalConsumerAggregator();
         } else {
             yAggregator = null;
@@ -231,7 +238,7 @@ public class SwtScatterChart extends SwtXYChartViewer {
         NumericalConsumerAggregator xAggregator = (NumericalConsumerAggregator) chartConsumer.getXAggregator();
         if (xAggregator != null) {
             if (getModel().isXLogscale()) {
-                fXRanges = clampExternalRange(xAggregator.getChartRanges());
+                fXRanges = clampInputDataRange(xAggregator.getChartRanges());
             } else {
                 fXRanges = xAggregator.getChartRanges();
             }
@@ -241,7 +248,7 @@ public class SwtScatterChart extends SwtXYChartViewer {
         NumericalConsumerAggregator yAggregator = (NumericalConsumerAggregator) chartConsumer.getYAggregator();
         if (yAggregator != null) {
             if (getModel().isYLogscale()) {
-                fYRanges = clampExternalRange(yAggregator.getChartRanges());
+                fYRanges = clampInputDataRange(yAggregator.getChartRanges());
             } else {
                 fYRanges = yAggregator.getChartRanges();
             }
@@ -251,10 +258,10 @@ public class SwtScatterChart extends SwtXYChartViewer {
         for (XYSeriesConsumer seriesConsumer : chartConsumer.getSeries()) {
             double[] xData;
             double[] yData;
-            Object[] object = seriesConsumer.getObject().toArray();
+            Object[] object = seriesConsumer.getConsumedElements().toArray();
 
             /* Generate data for the X axis */
-            if (getXDescriptorsInfo().areNumericals()) {
+            if (getXDescriptorsInfo().areNumerical()) {
                 NumericalConsumer consumer = (NumericalConsumer) seriesConsumer.getXConsumer();
                 int size = consumer.getData().size();
 
@@ -275,7 +282,7 @@ public class SwtScatterChart extends SwtXYChartViewer {
             }
 
             /* Generate data for the Y axis */
-            if (getYDescriptorsInfo().areNumericals()) {
+            if (getYDescriptorsInfo().areNumerical()) {
                 NumericalConsumer consumer = (NumericalConsumer) seriesConsumer.getYConsumer();
 
                 yData = new double[consumer.getData().size()];
@@ -311,7 +318,7 @@ public class SwtScatterChart extends SwtXYChartViewer {
             Format format;
 
             /* Give a continuous formatter if the descriptors are numericals */
-            if (getXDescriptorsInfo().areNumericals()) {
+            if (getXDescriptorsInfo().areNumerical()) {
                 format = getContinuousAxisFormatter(fXRanges, getXDescriptorsInfo());
             } else {
                 fVisibleXMap = copyBiMap(fXStringMap);
@@ -328,7 +335,7 @@ public class SwtScatterChart extends SwtXYChartViewer {
             Format format;
 
             /* Give a continuous formatter if the descriptors are numericals. */
-            if (getYDescriptorsInfo().areNumericals()) {
+            if (getYDescriptorsInfo().areNumerical()) {
                 format = getContinuousAxisFormatter(fYRanges, getYDescriptorsInfo());
             } else {
                 fVisibleYMap = copyBiMap(fYStringMap);

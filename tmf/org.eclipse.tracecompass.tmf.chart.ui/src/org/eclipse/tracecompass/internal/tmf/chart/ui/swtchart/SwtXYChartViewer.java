@@ -92,27 +92,27 @@ public abstract class SwtXYChartViewer extends TmfViewer implements IChartViewer
     /**
      * Time stamp formatter for intervals in the days range
      */
-    protected static final ChartTimeStampFormat DAYS_FORMATTER = new ChartTimeStampFormat("dd HH:mm"); //$NON-NLS-1$
+    protected static final ChartTimeStampFormat DAYS_FORMATTER = new ChartTimeStampFormat("dd HH:mm", null); //$NON-NLS-1$
     /**
      * Time stamp formatter for intervals in the hours range
      */
-    protected static final ChartTimeStampFormat HOURS_FORMATTER = new ChartTimeStampFormat("HH:mm"); //$NON-NLS-1$
+    protected static final ChartTimeStampFormat HOURS_FORMATTER = new ChartTimeStampFormat("HH:mm", null); //$NON-NLS-1$
     /**
      * Time stamp formatter for intervals in the minutes range
      */
-    protected static final ChartTimeStampFormat MINUTES_FORMATTER = new ChartTimeStampFormat("mm:ss"); //$NON-NLS-1$
+    protected static final ChartTimeStampFormat MINUTES_FORMATTER = new ChartTimeStampFormat("mm:ss", null); //$NON-NLS-1$
     /**
      * Time stamp formatter for intervals in the seconds range
      */
-    protected static final ChartTimeStampFormat SECONDS_FORMATTER = new ChartTimeStampFormat("ss"); //$NON-NLS-1$
+    protected static final ChartTimeStampFormat SECONDS_FORMATTER = new ChartTimeStampFormat("ss", null); //$NON-NLS-1$
     /**
      * Time stamp formatter for intervals in the milliseconds range
      */
-    protected static final ChartTimeStampFormat MILLISECONDS_FORMATTER = new ChartTimeStampFormat("ss.SSS"); //$NON-NLS-1$
+    protected static final ChartTimeStampFormat MILLISECONDS_FORMATTER = new ChartTimeStampFormat("ss.SSS", null); //$NON-NLS-1$
     /**
      * Decimal formatter to display nanoseconds as seconds
      */
-    protected static final DecimalUnitFormat NANO_TO_SECS_FORMATTER = new ChartDecimalUnitFormat(0.000000001);
+    protected static final DecimalUnitFormat NANO_TO_SECS_FORMATTER = new ChartDecimalUnitFormat(0.000000001, null);
     /**
      * Default decimal formatter
      */
@@ -180,8 +180,8 @@ public abstract class SwtXYChartViewer extends TmfViewer implements IChartViewer
     // ------------------------------------------------------------------------
 
     /**
-     * Constructor for the chart. The caller must call the {@link #populate()}
-     * method to create the rest of the chart.
+     * Constructor for the chart. Any final class that derives this class must
+     * call the {@link #populate()} method to create the rest of the chart.
      *
      * @param parent
      *            A parent composite
